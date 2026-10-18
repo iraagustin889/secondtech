@@ -50,4 +50,11 @@ class User extends Authenticatable
     {
         return $this->role === 'seller';
     }
+
+    // Satu user (penjual) punya banyak produk
+    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+    
 }
