@@ -35,5 +35,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'buyer',
             'is_active' => true,
         ]);
+
+        // Jalankan seeder kategori
+$this->call(CategorySeeder::class);
     }
 }
