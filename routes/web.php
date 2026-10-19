@@ -35,11 +35,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
     });
 
-// Halaman penjual: untuk seller (dan admin)
-Route::middleware(['auth', 'role:seller,admin'])
+// Halaman penjual: semua user yang login boleh jual (sesuai SRS)
+Route::middleware(['auth'])
     ->prefix('seller')
     ->name('seller.')
     ->group(function () {
-        // Daftar produk milik penjual
-        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     });
