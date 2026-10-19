@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,4 +33,13 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
         // Aktif/nonaktifkan kategori
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
+    });
+
+// Halaman penjual: untuk seller (dan admin)
+Route::middleware(['auth', 'role:seller,admin'])
+    ->prefix('seller')
+    ->name('seller.')
+    ->group(function () {
+        // Daftar produk milik penjual
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     });
