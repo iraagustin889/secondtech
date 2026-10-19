@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,13 +22,29 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
-    
+
+// Halaman admin, hanya untuk user login dengan role admin.
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-         Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
-            ->name('dashboard');
-         Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
-            ->name('users.index');
+        // Dashboard (Issue #11)
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Manajemen pengguna (Issue #11)
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+        // Kategori
+        Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
+    });
+
+// Halaman penjual: untuk seller (dan admin)
+Route::middleware(['auth', 'role:seller,admin'])
+    ->prefix('seller')
+    ->name('seller.')
+    ->group(function () {
+        // Daftar produk milik penjual
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     });
