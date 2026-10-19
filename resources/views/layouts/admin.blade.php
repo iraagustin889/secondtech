@@ -21,7 +21,13 @@
                    class="block rounded px-3 py-2 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
                     Dashboard
                 </a>
+                <a href="{{ route('admin.users.index') }}"
+                  class="block rounded px-3 py-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
+                  Pengguna
+                </a>
             </nav>
+
+
 
             <div class="p-3 border-t text-sm">
                 <a href="/" class="block rounded px-3 py-2 hover:bg-gray-100">Ke situs utama</a>
