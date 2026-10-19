@@ -13,6 +13,11 @@
 
             <div class="flex items-center gap-4 text-sm">
                 @auth
+                    {{-- BARU: tautan ke halaman kelola produk milik user --}}
+                    <a href="{{ route('seller.products.index') }}" class="hover:underline">
+                        Produk Saya
+                    </a>
+
                     <span>Halo, {{ auth()->user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
