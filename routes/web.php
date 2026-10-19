@@ -23,7 +23,6 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/', function () {
-            return 'Halo admin, ini dashboard.';
-        })->name('dashboard');
+         Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
+            ->name('dashboard');
     });
