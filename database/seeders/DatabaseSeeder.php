@@ -36,7 +36,10 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Jalankan seeder kategori
-$this->call(CategorySeeder::class);
+               // Seeder kategori harus jalan sebelum seeder order (produk butuh kategori)
+        $this->call([
+            CategorySeeder::class,
+            OrderSeeder::class,
+        ]);
     }
 }
