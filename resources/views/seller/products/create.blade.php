@@ -13,7 +13,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('seller.products.store') }}" class="space-y-4">
+    <form method="POST" action="{{ route('seller.products.store') }}" enctype="multipart/form-data" class="space-y-4">
         @csrf
 
         {{-- Nama --}}
@@ -74,6 +74,13 @@
         <div>
             <label class="block mb-1 font-medium">Stok</label>
             <input type="number" name="stock" value="{{ old('stock', 1) }}"
+                   class="w-full border rounded px-3 py-2">
+        </div>
+
+                {{-- Foto produk (opsional) --}}
+        <div>
+            <label class="block mb-1 font-medium">Foto produk (opsional, maks 2 MB)</label>
+            <input type="file" name="image" accept="image/*"
                    class="w-full border rounded px-3 py-2">
         </div>
 
