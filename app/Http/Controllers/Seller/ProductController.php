@@ -56,6 +56,8 @@ class ProductController extends Controller
                 'required',
                 Rule::exists('categories', 'id')->where('is_active', true),
             ],
+            // BARU: foto opsional, harus gambar jpg/png/webp, maksimal 2 MB
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ], [
             'name.required' => 'Nama produk wajib diisi.',
             'price.required' => 'Harga wajib diisi.',
@@ -70,7 +72,19 @@ class ProductController extends Controller
             'stock.min' => 'Stok minimal 1.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori tidak valid atau sudah nonaktif.',
+            // BARU: pesan error foto
+            'image.image' => 'File harus berupa gambar.',
+            'image.mimes' => 'Format foto harus jpg, jpeg, png, atau webp.',
+            'image.max' => 'Ukuran foto maksimal 2 MB.',
         ]);
+
+        // BARU: simpan file ke storage/app/public/products,
+        // lalu yang disimpan di database hanya path-nya (teks), bukan file-nya
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($data['image']); // tidak ada foto, kolom image tetap null
+        }
 
         // Pemilik produk selalu user yang login (bukan dari input form)
         $data['user_id'] = auth()->id();
