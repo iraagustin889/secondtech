@@ -25,4 +25,21 @@ class UserController extends Controller
 
         return view('admin.users.index', compact('users', 'search'));
     }
+
+    public function toggle(User $user)
+    {
+      // Admin tidak boleh menonaktifkan dirinya sendiri
+     if ($user->id === auth()->id()) {
+        return back()->with('error', 'Anda tidak dapat menonaktifkan akun sendiri.');
+     }
+
+     $user->update(['is_active' => ! $user->is_active]);
+
+     return back()->with(
+        'status',
+        $user->is_active ? "Akun {$user->name} diaktifkan." : "Akun {$user->name} dinonaktifkan."
+      );
+    }
+
+   
 }

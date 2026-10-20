@@ -24,6 +24,7 @@
                     <th class="px-4 py-3">Email</th>
                     <th class="px-4 py-3">Role</th>
                     <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -39,10 +40,24 @@
                                 <span class="rounded bg-red-100 px-2 py-1 text-xs text-red-700">Nonaktif</span>
                             @endif
                         </td>
+                        <td class="px-4 py-3">
+                            @if ($user->id !== auth()->id())
+                                <form method="POST" action="{{ route('admin.users.toggle', $user) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                            class="rounded px-3 py-1 text-xs text-white {{ $user->is_active ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }}">
+                                        {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-xs text-gray-400">Akun Anda</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">Pengguna tidak ditemukan.</td>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">Pengguna tidak ditemukan.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -33,6 +33,7 @@ Route::middleware(['auth', 'role:admin'])
 
         // Manajemen pengguna (Issue #11)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::patch('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
