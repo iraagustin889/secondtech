@@ -46,5 +46,11 @@ Route::middleware(['auth'])
     ->prefix('seller')
     ->name('seller.')
     ->group(function () {
+        // Daftar produk milik penjual
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+        // Form tambah produk
+        Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+        // Simpan produk baru
+        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     });
+
