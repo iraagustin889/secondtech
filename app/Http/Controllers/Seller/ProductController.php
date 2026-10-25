@@ -108,6 +108,49 @@ class ProductController extends Controller
             ->with('success', 'Produk berhasil diperbarui.');
     }
 
+    // Sembunyikan / tampilkan produk (tidak menghapus data)
+    public function toggle(Product $product)
+    {
+        $this->authorizeOwner($product);
+
+        $product->update([
+            'status' => $product->status === 'active' ? 'hidden' : 'active',
+        ]);
+
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', $product->status === 'hidden'
+                ? 'Produk disembunyikan.'
+                : 'Produk ditampilkan kembali.');
+    }
+
+    // Hapus permanen, hanya kalau belum pernah dipesan
+    public function destroy(Product $product)
+    {
+        $this->authorizeOwner($product);
+
+        // order_items.product_id memakai restrictOnDelete,
+        // jadi produk yang sudah pernah dipesan tidak boleh dihapus
+        if ($product->orderItems()->exists()) {
+            return redirect()
+                ->route('seller.products.index')
+                ->with('error', 'Produk sudah pernah dipesan dan tidak bisa dihapus. Gunakan Sembunyikan.');
+        }
+
+        $image = $product->image;
+
+        $product->delete();
+
+        // Hapus file foto setelah record berhasil dihapus
+        if ($image) {
+            Storage::disk('public')->delete($image);
+        }
+
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', 'Produk berhasil dihapus.');
+    }
+
     // Pagar kepemilikan: bukan pemilik = 403
     private function authorizeOwner(Product $product): void
     {
@@ -155,7 +198,7 @@ class ProductController extends Controller
             'stock.min' => 'Stok minimal 1.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori tidak valid atau sudah nonaktif.',
-            
+
             'image.image' => 'File harus berupa gambar.',
             'image.mimes' => 'Format foto harus jpg, jpeg, png, atau webp.',
             'image.max' => 'Ukuran foto maksimal 2 MB.',

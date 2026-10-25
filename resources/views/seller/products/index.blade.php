@@ -11,10 +11,17 @@
         + Tambah Produk
     </a>
 
-    {{-- Pesan sukses (dipakai nanti setelah tambah/edit/hapus) --}}
+    {{-- Pesan sukses --}}
     @if (session('success'))
         <div class="mb-4 p-3 rounded bg-green-100 text-green-800">
             {{ session('success') }}
+        </div>
+    @endif
+
+    {{-- Pesan error --}}
+    @if (session('error'))
+        <div class="mb-4 p-3 rounded bg-red-100 text-red-800">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -25,7 +32,6 @@
         <table class="w-full border text-left">
             <thead class="bg-gray-100">
                 <tr>
-                    {{-- BARU: kolom foto --}}
                     <th class="p-2">Foto</th>
                     <th class="p-2">Nama</th>
                     <th class="p-2">Kategori</th>
@@ -38,7 +44,6 @@
             <tbody>
                 @foreach ($products as $product)
                     <tr class="border-t">
-                        {{-- BARU: kalau ada foto tampilkan, kalau tidak tampilkan tanda strip --}}
                         <td class="p-2">
                             @if ($product->image)
                                 <img src="{{ asset('storage/' . $product->image) }}"
@@ -55,7 +60,24 @@
                         <td class="p-2">{{ $product->condition }}</td>
                         <td class="p-2">{{ $product->status }}</td>
                         <td class="p-2">
-                            <a href="{{ route('seller.products.edit', $product) }}" class="text-blue-600 underline">Edit</a>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('seller.products.edit', $product) }}" class="text-blue-600 underline">Edit</a>
+
+                                <form method="POST" action="{{ route('seller.products.toggle', $product) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="text-yellow-700 underline">
+                                        {{ $product->status === 'active' ? 'Sembunyikan' : 'Tampilkan' }}
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{{ route('seller.products.destroy', $product) }}"
+                                      onsubmit="return confirm('Hapus produk ini secara permanen?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 underline">Hapus</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
