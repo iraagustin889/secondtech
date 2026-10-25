@@ -32,6 +32,7 @@
                     <th class="p-2">Harga</th>
                     <th class="p-2">Kondisi</th>
                     <th class="p-2">Status</th>
+                    <th class="p-2">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,6 +54,9 @@
                         <td class="p-2">Rp {{ number_format($product->price, 0, ',', '.') }}</td>
                         <td class="p-2">{{ $product->condition }}</td>
                         <td class="p-2">{{ $product->status }}</td>
+                        <td class="p-2">
+                            <a href="{{ route('seller.products.edit', $product) }}" class="text-blue-600 underline">Edit</a>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

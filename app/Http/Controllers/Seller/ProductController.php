@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
@@ -27,14 +29,8 @@ class ProductController extends Controller
     // Menampilkan form tambah produk
     public function create()
     {
-        // Dropdown hanya berisi kategori AKTIF,
-        // jadi kategori nonaktif otomatis tidak bisa dipilih
-        $categories = Category::where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
         return view('seller.products.create', [
-            'categories' => $categories,
+            'categories' => $this->activeCategories(),
             'conditions' => self::CONDITIONS,
         ]);
     }
@@ -42,7 +38,90 @@ class ProductController extends Controller
     // Menyimpan produk baru
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $data = $request->validate($this->rules(), $this->messages());
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($data['image']);
+        }
+
+        // Pemilik produk selalu user yang login (bukan dari input form)
+        $data['user_id'] = auth()->id();
+
+        Product::create($data);
+
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', 'Produk berhasil ditambahkan.');
+    }
+
+    // Menampilkan form edit produk
+    public function edit(Product $product)
+    {
+        $this->authorizeOwner($product);
+
+        // Kategori aktif, ditambah kategori produk ini sendiri
+        // (supaya tetap muncul walaupun kategorinya sudah dinonaktifkan)
+        $categories = Category::where('is_active', true)
+            ->orWhere('id', $product->category_id)
+            ->orderBy('name')
+            ->get();
+
+        return view('seller.products.edit', [
+            'product' => $product,
+            'categories' => $categories,
+            'conditions' => self::CONDITIONS,
+        ]);
+    }
+
+    // Menyimpan perubahan produk
+    public function update(Request $request, Product $product)
+    {
+        // Cek pemilik DULU sebelum validasi
+        $this->authorizeOwner($product);
+
+        $rules = $this->rules();
+
+        // Kalau kategori tidak diganti, jangan ditolak walau sudah nonaktif
+        if ((int) $request->input('category_id') === $product->category_id) {
+            $rules['category_id'] = ['required', Rule::exists('categories', 'id')];
+        }
+
+        $data = $request->validate($rules, $this->messages());
+
+        if ($request->hasFile('image')) {
+            // Hapus foto lama dari storage, lalu simpan yang baru
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($data['image']); // tidak upload foto baru, foto lama dipertahankan
+        }
+
+        // user_id tidak pernah diubah lewat form
+        $product->update($data);
+
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', 'Produk berhasil diperbarui.');
+    }
+
+    // Pagar kepemilikan: bukan pemilik = 403
+    private function authorizeOwner(Product $product): void
+    {
+        abort_if($product->user_id !== auth()->id(), 403, 'Ini bukan produk Anda.');
+    }
+
+    private function activeCategories()
+    {
+        return Category::where('is_active', true)->orderBy('name')->get();
+    }
+
+    private function rules(): array
+    {
+        return [
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
             'price' => ['required', 'integer', 'min:1000'],
@@ -50,15 +129,19 @@ class ProductController extends Controller
             'weight' => ['required', 'integer', 'min:1'],
             'location' => ['required', 'string', 'max:100'],
             'stock' => ['required', 'integer', 'min:1'],
-            // Kategori harus ada DAN aktif. Ini pagar kedua kalau
-            // seseorang mengakali form dan mengirim kategori nonaktif.
+
             'category_id' => [
                 'required',
                 Rule::exists('categories', 'id')->where('is_active', true),
             ],
-            // BARU: foto opsional, harus gambar jpg/png/webp, maksimal 2 MB
+
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ], [
+        ];
+    }
+
+    private function messages(): array
+    {
+        return [
             'name.required' => 'Nama produk wajib diisi.',
             'price.required' => 'Harga wajib diisi.',
             'price.integer' => 'Harga harus berupa angka bulat.',
@@ -72,27 +155,10 @@ class ProductController extends Controller
             'stock.min' => 'Stok minimal 1.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori tidak valid atau sudah nonaktif.',
-            // BARU: pesan error foto
+            
             'image.image' => 'File harus berupa gambar.',
             'image.mimes' => 'Format foto harus jpg, jpeg, png, atau webp.',
             'image.max' => 'Ukuran foto maksimal 2 MB.',
-        ]);
-
-        // BARU: simpan file ke storage/app/public/products,
-        // lalu yang disimpan di database hanya path-nya (teks), bukan file-nya
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
-        } else {
-            unset($data['image']); // tidak ada foto, kolom image tetap null
-        }
-
-        // Pemilik produk selalu user yang login (bukan dari input form)
-        $data['user_id'] = auth()->id();
-
-        \App\Models\Product::create($data);
-
-        return redirect()
-            ->route('seller.products.index')
-            ->with('success', 'Produk berhasil ditambahkan.');
+        ];
     }
 }
