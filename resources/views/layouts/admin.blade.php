@@ -29,6 +29,10 @@
                    class="block rounded px-3 py-2 {{ request()->routeIs('admin.products.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
                     Produk
                 </a>
+                <a href="{{ route('admin.logs.index') }}"
+                  class="block rounded px-3 py-2 {{ request()->routeIs('admin.logs.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
+                   Log Aktivitas
+                </a>
             </nav>
 
             <div class="p-3 border-t text-sm">
