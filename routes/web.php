@@ -20,6 +20,7 @@ Route::get('/products', [CatalogController::class, 'index'])->name('products.ind
 // Detail produk (Issue #5), publik
 Route::get('/products/{product}', [CatalogController::class, 'show'])->name('products.show');
 
+
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store']);
@@ -44,6 +45,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
         Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
+        Route::patch('/products/{product}/hide', [AdminProductController::class, 'hide'])->name('products.hide');
+Route::patch('/products/{product}/activate', [AdminProductController::class, 'activate'])->name('products.activate');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
