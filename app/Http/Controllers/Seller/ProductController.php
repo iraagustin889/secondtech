@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 class ProductController extends Controller
 {
     // Daftar kondisi barang yang boleh dipilih (dipakai di form dan validasi)
-    private const CONDITIONS = ['Seperti baru', 'Bekas baik', 'Bekas normal', 'Butuh perbaikan'];
+    public const CONDITIONS = ['Seperti baru', 'Bekas baik', 'Bekas normal', 'Butuh perbaikan'];
 
     // Menampilkan daftar produk milik user yang sedang login
     public function index()

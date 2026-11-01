@@ -6,11 +6,15 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Seller\ProductController;
+use App\Http\Controllers\CatalogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
 });
+
+// Katalog publik (Issue #4), tanpa login
+Route::get('/products', [CatalogController::class, 'index'])->name('products.index');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
