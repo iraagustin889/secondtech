@@ -25,9 +25,11 @@
                   class="block rounded px-3 py-2 {{ request()->routeIs('admin.users.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
                   Pengguna
                 </a>
+                <a href="{{ route('admin.products.index') }}"
+                   class="block rounded px-3 py-2 {{ request()->routeIs('admin.products.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
+                    Produk
+                </a>
             </nav>
-
-
 
             <div class="p-3 border-t text-sm">
                 <a href="/" class="block rounded px-3 py-2 hover:bg-gray-100">Ke situs utama</a>

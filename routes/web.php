@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\Seller\ProductController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,6 +42,8 @@ Route::middleware(['auth', 'role:admin'])
         // Manajemen pengguna (Issue #11)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
+        Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+        Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
