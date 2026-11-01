@@ -41,4 +41,32 @@
             </div>
         </div>
     </div>
+
+    <div class="mt-6 rounded-lg border bg-white p-6">
+        <h3 class="font-semibold">Moderasi Produk</h3>
+
+        @if ($product->status === 'active')
+            <form method="POST" action="{{ route('admin.products.hide', $product) }}" class="mt-3">
+                @csrf
+                @method('PATCH')
+                <label class="block text-sm text-gray-600">Alasan menyembunyikan produk</label>
+                <textarea name="reason" rows="3" required
+                          class="mt-1 w-full rounded border px-3 py-2 text-sm">{{ old('reason') }}</textarea>
+                @error('reason')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+                <button type="submit" class="mt-3 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">
+                    Sembunyikan Produk
+                </button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('admin.products.activate', $product) }}" class="mt-3">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">
+                    Aktifkan Kembali
+                </button>
+            </form>
+        @endif
+    </div>
 @endsection
