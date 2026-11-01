@@ -41,4 +41,17 @@ class CatalogController extends Controller
             'filters'    => $filters,
         ]);
     }
+    public function show(Product $product)
+    {
+        // Produk tidak aktif hanya boleh dilihat pemiliknya.
+        $isOwner = auth()->check() && auth()->id() === $product->user_id;
+        abort_unless($product->status === 'active' || $isOwner, 404);
+
+        $product->load(['category', 'seller']);
+
+        return view('catalog.show', [
+            'product' => $product,
+            'isOwner' => $isOwner,
+        ]);
+    }
 }

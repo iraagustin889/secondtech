@@ -5,8 +5,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,6 +15,9 @@ Route::get('/', function () {
 
 // Katalog publik (Issue #4), tanpa login
 Route::get('/products', [CatalogController::class, 'index'])->name('products.index');
+
+// Detail produk (Issue #5), publik
+Route::get('/products/{product}', [CatalogController::class, 'show'])->name('products.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
@@ -45,7 +48,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
     });
 
-
 // Halaman penjual: semua user yang login boleh jual (sesuai SRS)
 Route::middleware(['auth'])
     ->prefix('seller')
@@ -62,4 +64,4 @@ Route::middleware(['auth'])
         Route::patch('/products/{product}/toggle', [ProductController::class, 'toggle'])->name('products.toggle');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
-
+    

@@ -89,8 +89,8 @@
 
         <div class="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             @foreach ($products as $product)
-                {{-- TODO Issue #5: bungkus kartu dengan tautan ke route('products.show', $product) --}}
-                <div class="bg-white border rounded overflow-hidden flex flex-col">
+                <a href="{{ route('products.show', $product) }}"
+                   class="bg-white border rounded overflow-hidden flex flex-col hover:shadow">
                     @if ($product->image)
                         <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
                              class="w-full h-40 object-cover">
@@ -109,7 +109,7 @@
                             <span>{{ $product->location }}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             @endforeach
         </div>
 
