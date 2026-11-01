@@ -9,6 +9,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\LogController;
 
 Route::get('/', function () {
     return view('home');
@@ -46,7 +47,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
         Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
         Route::patch('/products/{product}/hide', [AdminProductController::class, 'hide'])->name('products.hide');
-Route::patch('/products/{product}/activate', [AdminProductController::class, 'activate'])->name('products.activate');
+        Route::patch('/products/{product}/activate', [AdminProductController::class, 'activate'])->name('products.activate');
+
+        // Log aktivitas admin (Issue #12)
+        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
