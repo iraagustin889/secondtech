@@ -12,6 +12,7 @@
             <a href="/" class="text-xl font-bold text-blue-600">SECONDTECH</a>
 
             <div class="flex items-center gap-4 text-sm">
+                <a href="{{ route('products.index') }}" class="hover:underline">Katalog</a>
                 @auth
                     {{-- BARU: tautan ke halaman kelola produk milik user --}}
                     <a href="{{ route('seller.products.index') }}" class="hover:underline">
