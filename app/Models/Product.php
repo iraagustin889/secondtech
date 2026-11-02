@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'condition',
     'weight',
     'location',
+    'shipping_origin_id',
     'stock',
     'status',
     'image',
@@ -38,9 +40,21 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-        // Produk bisa muncul di banyak item pesanan
+    // Produk bisa muncul di banyak item pesanan
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function scopePurchasable(Builder $query): Builder
+    {
+        return $query
+            ->where('status', 'active')
+            ->where('stock', '>', 0);
+    }
+
+    public function isPurchasable(): bool
+    {
+        return $this->status === 'active' && $this->stock > 0;
     }
 }
