@@ -17,6 +17,14 @@ class OrderItem extends Model
         'qty',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'price_snapshot' => 'decimal:2',
+            'qty' => 'integer',
+        ];
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

@@ -12,7 +12,7 @@ class ProductFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'category_id' => Category::inRandomOrder()->value('id'),
+            'category_id' => Category::factory(),
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),
             'price' => fake()->numberBetween(50, 5000) * 1000,

@@ -13,7 +13,9 @@ class CatalogTest extends TestCase
     use RefreshDatabase;
 
     private Category $laptop;
+
     private Category $phone;
+
     private User $seller;
 
     protected function setUp(): void
@@ -24,20 +26,20 @@ class CatalogTest extends TestCase
 
         $this->seller = User::factory()->create();
         $this->laptop = Category::create(['name' => 'Laptop', 'slug' => 'laptop', 'is_active' => true]);
-        $this->phone  = Category::create(['name' => 'Smartphone', 'slug' => 'smartphone', 'is_active' => true]);
+        $this->phone = Category::create(['name' => 'Smartphone', 'slug' => 'smartphone', 'is_active' => true]);
     }
 
     private function makeProduct(array $attributes = []): Product
     {
         return Product::factory()->create(array_merge([
-            'user_id'     => $this->seller->id,
+            'user_id' => $this->seller->id,
             'category_id' => $this->laptop->id,
-            'name'        => 'Produk Contoh',
-            'price'       => 1000000,
-            'condition'   => 'Bekas baik',
-            'location'    => 'Banyuwangi',
-            'stock'       => 1,
-            'status'      => 'active',
+            'name' => 'Produk Contoh',
+            'price' => 1000000,
+            'condition' => 'Bekas baik',
+            'location' => 'Banyuwangi',
+            'stock' => 1,
+            'status' => 'active',
         ], $attributes));
     }
 
@@ -133,12 +135,12 @@ class CatalogTest extends TestCase
         ]);
 
         $this->get(route('products.index', [
-            'q'         => 'laptop',
-            'category'  => $this->laptop->id,
+            'q' => 'laptop',
+            'category' => $this->laptop->id,
             'min_price' => 1000000,
             'max_price' => 5000000,
             'condition' => 'Bekas baik',
-            'location'  => 'Surabaya',
+            'location' => 'Surabaya',
         ]))
             ->assertSee('Target Laptop')
             ->assertDontSee('Salah Kategori')
