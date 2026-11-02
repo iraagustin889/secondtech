@@ -14,7 +14,7 @@
             <div class="flex items-center gap-4 text-sm">
                 <a href="{{ route('products.index') }}" class="hover:underline">Katalog</a>
                 @auth
-                    {{-- Tautan kelola produk milik user --}}
+                    <a href="{{ route('orders.index') }}" class="hover:underline">Pembelian</a>
                     <a href="{{ route('seller.products.index') }}" class="hover:underline">
                         Produk Saya
                     </a>

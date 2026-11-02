@@ -5,12 +5,6 @@
 @section('content')
     <h1 class="text-2xl font-bold mb-6">Edit Profil</h1>
 
-    @if (session('success'))
-        <div class="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded border border-green-200">
-            {{ session('success') }}
-        </div>
-    @endif
-
     @if ($errors->any())
         <div class="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-200">
             <ul class="list-disc pl-5">
