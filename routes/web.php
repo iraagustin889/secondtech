@@ -8,12 +8,11 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\OrderHistoryController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\Seller\OrderController as SellerOrderController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seller\ProductController;
+
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 
@@ -34,21 +33,10 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+// Profil pengguna (Issue #5), semua user yang login
 Route::middleware('auth')->group(function () {
-    Route::get('/products/{product}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
-    Route::post('/products/{product}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-
-    Route::middleware('throttle:30,1')->group(function () {
-        Route::get('/shipping/destinations', [CheckoutController::class, 'destinations'])->name('shipping.destinations');
-        Route::post('/products/{product}/shipping-quotes', [CheckoutController::class, 'quote'])->name('checkout.quote');
-    });
-
-    Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [OrderHistoryController::class, 'show'])->name('orders.show');
-    Route::post('/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/orders/{order}/payment', [PaymentController::class, 'submit'])->name('orders.payment.submit');
-    Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
-    Route::get('/orders/{order}/tracking', [OrderHistoryController::class, 'tracking'])->name('orders.tracking');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 // Halaman admin, hanya untuk user login dengan role admin.
@@ -62,13 +50,7 @@ Route::middleware(['auth', 'role:admin'])
         // Manajemen pengguna (Issue #11)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
-        Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
-        Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
-        Route::patch('/products/{product}/hide', [AdminProductController::class, 'hide'])->name('products.hide');
-        Route::patch('/products/{product}/activate', [AdminProductController::class, 'activate'])->name('products.activate');
-
-        // Log aktivitas admin (Issue #12)
-        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+        
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
