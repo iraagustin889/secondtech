@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ServiceFeeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -15,8 +16,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\LogController;
-use App\Http\Controllers\Admin\ServiceFeeController;
+
+
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 
