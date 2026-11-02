@@ -12,6 +12,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seller\ProductController;
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\ServiceFeeController;
 
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
@@ -50,8 +52,18 @@ Route::middleware(['auth', 'role:admin'])
         // Manajemen pengguna (Issue #11)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
-        
+        Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+        Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
+        Route::patch('/products/{product}/hide', [AdminProductController::class, 'hide'])->name('products.hide');
+        Route::patch('/products/{product}/activate', [AdminProductController::class, 'activate'])->name('products.activate');
 
+        // Log aktivitas admin (Issue #12)
+        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+        
+        // Pengaturan biaya layanan (Issue #13)
+        Route::get('/service-fee', [ServiceFeeController::class, 'edit'])->name('service-fee.edit');
+        Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
+        
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
