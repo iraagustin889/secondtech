@@ -14,12 +14,12 @@
             <div class="flex items-center gap-4 text-sm">
                 <a href="{{ route('products.index') }}" class="hover:underline">Katalog</a>
                 @auth
-                    {{-- BARU: tautan ke halaman kelola produk milik user --}}
+                    {{-- Tautan kelola produk milik user --}}
                     <a href="{{ route('seller.products.index') }}" class="hover:underline">
                         Produk Saya
                     </a>
 
-                    <span>Halo, {{ auth()->user()->name }}</span>
+                    <a href="{{ route('profile.edit') }}" class="hover:underline">Halo, {{ auth()->user()->name }}</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="text-red-600 hover:underline">Logout</button>

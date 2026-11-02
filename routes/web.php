@@ -6,10 +6,11 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seller\ProductController;
-use App\Http\Controllers\Admin\ProductController as AdminProductController;
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\LogController;
+
 
 Route::get('/', function () {
     return view('home');
@@ -33,6 +34,12 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+// Profil pengguna (Issue #5), semua user yang login
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+
 // Halaman admin, hanya untuk user login dengan role admin.
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
@@ -44,13 +51,7 @@ Route::middleware(['auth', 'role:admin'])
         // Manajemen pengguna (Issue #11)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
-        Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
-        Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
-        Route::patch('/products/{product}/hide', [AdminProductController::class, 'hide'])->name('products.hide');
-        Route::patch('/products/{product}/activate', [AdminProductController::class, 'activate'])->name('products.activate');
-
-        // Log aktivitas admin (Issue #12)
-        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+        
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -74,4 +75,3 @@ Route::middleware(['auth'])
         Route::patch('/products/{product}/toggle', [ProductController::class, 'toggle'])->name('products.toggle');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
-    
