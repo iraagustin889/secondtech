@@ -60,6 +60,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $this->authorizeOwner($product);
+        $this->ensureEditable($product);
 
         // Kategori aktif, ditambah kategori produk ini sendiri
         // (supaya tetap muncul walaupun kategorinya sudah dinonaktifkan)
@@ -80,6 +81,7 @@ class ProductController extends Controller
     {
         // Cek pemilik DULU sebelum validasi
         $this->authorizeOwner($product);
+        $this->ensureEditable($product);
 
         $rules = $this->rules();
 
@@ -112,6 +114,7 @@ class ProductController extends Controller
     public function toggle(Product $product)
     {
         $this->authorizeOwner($product);
+        $this->ensureEditable($product);
 
         $product->update([
             'status' => $product->status === 'active' ? 'hidden' : 'active',
@@ -157,6 +160,11 @@ class ProductController extends Controller
         abort_if($product->user_id !== auth()->id(), 403, 'Ini bukan produk Anda.');
     }
 
+    private function ensureEditable(Product $product): void
+    {
+        abort_unless(in_array($product->status, ['active', 'hidden'], true), 422, 'Produk yang sudah dipesan tidak dapat diubah.');
+    }
+
     private function activeCategories()
     {
         return Category::where('is_active', true)->orderBy('name')->get();
@@ -171,6 +179,7 @@ class ProductController extends Controller
             'condition' => ['required', Rule::in(self::CONDITIONS)],
             'weight' => ['required', 'integer', 'min:1'],
             'location' => ['required', 'string', 'max:100'],
+            'shipping_origin_id' => ['nullable', 'integer', 'min:1'],
             'stock' => ['required', 'integer', 'min:1'],
 
             'category_id' => [

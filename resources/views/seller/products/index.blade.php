@@ -60,6 +60,7 @@
                         <td class="p-2">{{ $product->condition }}</td>
                         <td class="p-2">{{ $product->status }}</td>
                         <td class="p-2">
+                            @if (in_array($product->status, ['active', 'hidden'], true))
                             <div class="flex items-center gap-3">
                                 <a href="{{ route('seller.products.edit', $product) }}" class="text-blue-600 underline">Edit</a>
 
@@ -78,6 +79,9 @@
                                     <button type="submit" class="text-red-600 underline">Hapus</button>
                                 </form>
                             </div>
+                            @else
+                                <span class="text-sm text-gray-500">Terkunci oleh pesanan</span>
+                            @endif
                         </td>
                     </tr>
                 @endforeach
