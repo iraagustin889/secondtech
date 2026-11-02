@@ -41,12 +41,21 @@
                         Ini produk Anda.
                         <a href="{{ route('seller.products.edit', $product) }}" class="underline">Edit produk</a>
                     </div>
+                @elseif (! $product->isPurchasable())
+                    <div class="p-3 bg-yellow-50 text-yellow-800 text-sm rounded border border-yellow-200">
+                        Produk sedang tidak tersedia.
+                    </div>
                 @else
-                    {{-- TODO Anggota 2: ganti tombol ini dengan form/tautan checkout --}}
-                    <button type="button" id="buy-button" disabled
-                            class="px-5 py-2 bg-blue-600 text-white rounded opacity-60 cursor-not-allowed">
-                        Beli
-                    </button>
+                    @auth
+                        <a id="buy-button" href="{{ route('checkout.create', $product) }}"
+                           class="inline-flex px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Beli sekarang
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="inline-flex px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Login untuk membeli
+                        </a>
+                    @endauth
                 @endif
             </div>
         </div>

@@ -70,6 +70,13 @@
                    class="w-full border rounded px-3 py-2">
         </div>
 
+        <div>
+            <label class="block mb-1 font-medium">ID lokasi asal pengiriman (opsional)</label>
+            <input type="number" name="shipping_origin_id" value="{{ old('shipping_origin_id') }}" min="1"
+                   class="w-full border rounded px-3 py-2">
+            <p class="mt-1 text-sm text-gray-500">ID RajaOngkir untuk menghitung ongkir. Kosongkan bila aplikasi memakai lokasi asal bawaan.</p>
+        </div>
+
         {{-- Stok --}}
         <div>
             <label class="block mb-1 font-medium">Stok</label>

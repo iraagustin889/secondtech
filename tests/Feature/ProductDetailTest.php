@@ -13,6 +13,7 @@ class ProductDetailTest extends TestCase
     use RefreshDatabase;
 
     private User $seller;
+
     private Category $category;
 
     protected function setUp(): void
@@ -27,16 +28,16 @@ class ProductDetailTest extends TestCase
     private function makeProduct(array $attributes = []): Product
     {
         return Product::factory()->create(array_merge([
-            'user_id'     => $this->seller->id,
+            'user_id' => $this->seller->id,
             'category_id' => $this->category->id,
-            'name'        => 'Laptop Detail',
+            'name' => 'Laptop Detail',
             'description' => 'Deskripsi lengkap laptop',
-            'price'       => 4500000,
-            'condition'   => 'Bekas baik',
-            'weight'      => 1800,
-            'location'    => 'Surabaya',
-            'stock'       => 1,
-            'status'      => 'active',
+            'price' => 4500000,
+            'condition' => 'Bekas baik',
+            'weight' => 1800,
+            'location' => 'Surabaya',
+            'stock' => 1,
+            'status' => 'active',
         ], $attributes));
     }
 
