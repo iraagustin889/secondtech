@@ -10,6 +10,7 @@ use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\ServiceFeeController;
 
 Route::get('/', function () {
     return view('home');
@@ -51,7 +52,11 @@ Route::middleware(['auth', 'role:admin'])
 
         // Log aktivitas admin (Issue #12)
         Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
-
+        
+        // Pengaturan biaya layanan (Issue #13)
+        Route::get('/service-fee', [ServiceFeeController::class, 'edit'])->name('service-fee.edit');
+        Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
+        
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
