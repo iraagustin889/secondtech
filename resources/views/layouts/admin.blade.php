@@ -37,6 +37,10 @@
                    class="block rounded px-3 py-2 {{ request()->routeIs('admin.service-fee.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
                    Biaya Layanan
                 </a>
+                <a href="{{ route('admin.reports.index') }}"
+                   class="block rounded px-3 py-2 {{ request()->routeIs('admin.reports.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
+                Laporan
+                </a>
             </nav>
 
             <div class="p-3 border-t text-sm">
