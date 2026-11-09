@@ -14,20 +14,21 @@
             <div class="flex items-center gap-4 text-sm">
                 <a href="{{ route('products.index') }}" class="hover:underline">Katalog</a>
                 @auth
+                    @if (auth()->user()->role === 'admin')
+                    <a href="{{ route('admin.dashboard') }}" class="hover:underline">Admin</a>
+               @else
                     <a href="{{ route('orders.index') }}" class="hover:underline">Pembelian</a>
                     <a href="{{ route('seller.products.index') }}" class="hover:underline">
-                        Produk Saya
-                    </a>
-                    <a href="{{ route('seller.orders.index') }}" class="hover:underline">Penjualan</a>
-                @if (auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.dashboard') }}" class="hover:underline">Admin</a>
-                @endif
-                    <a href="{{ route('profile.edit') }}" class="hover:underline">Halo, {{ auth()->user()->name }}</a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="text-red-600 hover:underline">Logout</button>
-                    </form>
-                @else
+                       Produk Saya
+                   </a>
+                   <a href="{{ route('seller.orders.index') }}" class="hover:underline">Penjualan</a>
+             @endif
+                   <a href="{{ route('profile.edit') }}" class="hover:underline">Halo, {{ auth()->user()->name }}</a>
+                   <form method="POST" action="{{ route('logout') }}">
+             @csrf
+                  <button type="submit" class="text-red-600 hover:underline">Logout</button>
+                  </form>
+             @else
                     <a href="{{ route('login') }}" class="hover:underline">Login</a>
                     <a href="{{ route('register') }}" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">Daftar</a>
                 @endauth
