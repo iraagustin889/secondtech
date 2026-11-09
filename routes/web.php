@@ -18,6 +18,7 @@ use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\ReviewController;
 
 
 
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
     Route::get('/orders/{order}/tracking', [OrderHistoryController::class, 'tracking'])->name('orders.tracking');
     Route::post('/orders/{order}/received', OrderReceiptController::class)->name('orders.received');
+    Route::post('/orders/{order}/review', [ReviewController::class, 'store'])->name('orders.review.store');
 });
 
 // Halaman admin, hanya untuk user login dengan role admin.
