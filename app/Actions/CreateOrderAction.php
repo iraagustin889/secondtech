@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Models\ServiceFeeConfiguration;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ShippingMethod;
@@ -38,8 +39,8 @@ class CreateOrderAction
                 throw new OrderUnavailableException('Pilihan ongkos kirim tidak lagi tersedia. Silakan cek ulang ongkir.');
             }
 
-            $serviceFee = (int) config('marketplace.service_fee', 0);
             $subtotal = (int) $lockedProduct->price;
+            $serviceFee = ServiceFeeConfiguration::calculate((int) $subtotal);
 
             $order = Order::create([
                 'buyer_id' => $buyer->id,
