@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LogController;
@@ -58,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/payment', [PaymentController::class, 'submit'])->name('orders.payment.submit');
     Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
     Route::get('/orders/{order}/tracking', [OrderHistoryController::class, 'tracking'])->name('orders.tracking');
+    Route::post('/orders/{order}/received', OrderReceiptController::class)->name('orders.received');
 });
 
 // Halaman admin, hanya untuk user login dengan role admin.
