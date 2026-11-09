@@ -36,6 +36,14 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        User::create([
+            'name' => 'Admin Dua',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
                // Seeder kategori harus jalan sebelum seeder order (produk butuh kategori)
         $this->call([
             CategorySeeder::class,
