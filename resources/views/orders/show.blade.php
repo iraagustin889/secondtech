@@ -80,6 +80,13 @@
             @if ($order->status->value === 'cod_agreed' && $viewerIsSeller)
                 <form method="POST" action="{{ route('seller.orders.cod.confirm', $order) }}">@csrf<button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Konfirmasi serah-terima COD</button></form>
             @endif
+            @if ($viewerIsBuyer && in_array($order->status->value, ['shipped', 'received'], true))
+                <form method="POST" action="{{ route('orders.received', $order) }}">
+                    @csrf
+                    <button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Barang sudah saya terima</button>
+                </form>
+            @endif
+            
         </aside>
     </div>
 @endsection
