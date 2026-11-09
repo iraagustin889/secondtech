@@ -16,6 +16,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\ReportController;
 
 
 
@@ -81,6 +82,7 @@ Route::middleware(['auth', 'role:admin'])
         // Pengaturan biaya layanan (Issue #13)
         Route::get('/service-fee', [ServiceFeeController::class, 'edit'])->name('service-fee.edit');
         Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
