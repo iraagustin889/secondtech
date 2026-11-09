@@ -19,8 +19,7 @@ use App\Http\Controllers\Seller\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\ReviewController;
-
-
+use App\Http\Middleware\DenyAdmin;
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 
@@ -41,11 +40,14 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+// Profil: semua user login (termasuk admin)
 Route::middleware('auth')->group(function () {
-    // Profil pengguna (Issue #5)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
+// Transaksi pembeli: admin dilarang (hanya monitoring)
+Route::middleware(['auth', DenyAdmin::class])->group(function () {
     Route::get('/products/{product}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/products/{product}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
@@ -82,12 +84,12 @@ Route::middleware(['auth', 'role:admin'])
 
         // Log aktivitas admin (Issue #12)
         Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
-        
+
         // Pengaturan biaya layanan (Issue #13)
         Route::get('/service-fee', [ServiceFeeController::class, 'edit'])->name('service-fee.edit');
         Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        
+
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -96,8 +98,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/orders/{order}/payment/confirm', [PaymentController::class, 'confirm'])->name('orders.payment.confirm');
     });
 
-// Halaman penjual: semua user yang login boleh jual (sesuai SRS)
-Route::middleware(['auth'])
+// Halaman penjual: user login non-admin (admin hanya monitoring)
+Route::middleware(['auth', DenyAdmin::class])
     ->prefix('seller')
     ->name('seller.')
     ->group(function () {
@@ -117,4 +119,3 @@ Route::middleware(['auth'])
         Route::post('/orders/{order}/cod-agreement', [SellerOrderController::class, 'agreeCod'])->name('orders.cod.agree');
         Route::post('/orders/{order}/cod-confirmation', [SellerOrderController::class, 'confirmCod'])->name('orders.cod.confirm');
     });
-    
