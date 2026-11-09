@@ -86,6 +86,38 @@
                     <button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Barang sudah saya terima</button>
                 </form>
             @endif
+            @if ($viewerIsBuyer && $order->status->value === 'completed')
+            @if ($order->review)
+            <section class="rounded-xl border bg-white p-5">
+            <h2 class="font-bold">Ulasan Anda</h2>
+            <p class="mt-2 text-yellow-500">{{ str_repeat('★', $order->review->rating) }}{{ str_repeat('☆', 5 - $order->review->rating) }}</p>
+            <p class="mt-1 text-sm text-gray-700">{{ $order->review->comment ?: '-' }}</p>
+          </section>
+    @else
+        <section class="rounded-xl border bg-white p-5">
+            <h2 class="font-bold">Beri ulasan</h2>
+            <form method="POST" action="{{ route('orders.review.store', $order) }}" class="mt-3 space-y-3">
+                @csrf
+                <div>
+                    <label class="block text-sm">Rating</label>
+                    <select name="rating" class="mt-1 w-full rounded border px-3 py-2" required>
+                        <option value="">-- Pilih --</option>
+                        @for ($i = 5; $i >= 1; $i--)
+                            <option value="{{ $i }}" @selected(old('rating') == $i)>{{ $i }} {{ str_repeat('★', $i) }}</option>
+                        @endfor
+                    </select>
+                    @error('rating')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="block text-sm">Komentar (opsional)</label>
+                    <textarea name="comment" rows="3" class="mt-1 w-full rounded border px-3 py-2">{{ old('comment') }}</textarea>
+                    @error('comment')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Kirim ulasan</button>
+            </form>
+        </section>
+    @endif
+@endif
             
         </aside>
     </div>
