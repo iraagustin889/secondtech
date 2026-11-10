@@ -28,6 +28,11 @@
         <div class="flex flex-col gap-3">
             <h1 class="text-2xl font-bold">{{ $product->name }}</h1>
             <p class="text-3xl font-bold text-blue-600">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                        @if ($reviewCount > 0)
+                <p class="text-sm text-yellow-600">★ {{ $avgRating }} <span class="text-gray-500">({{ $reviewCount }} ulasan)</span></p>
+            @else
+                <p class="text-sm text-gray-500">Belum ada ulasan</p>
+            @endif
 
             <div class="flex flex-wrap gap-2 text-xs">
                 <span class="px-2 py-0.5 bg-gray-100 rounded">{{ $product->category?->name }}</span>
@@ -87,8 +92,28 @@
                 <p class="text-sm text-gray-500">{{ $product->seller->location }}</p>
             @endif
             <p class="text-xs text-gray-400 mt-1">Bergabung {{ $product->seller->created_at->translatedFormat('F Y') }}</p>
+                        @if ($sellerReviewCount > 0)
+                <p class="text-xs text-yellow-600 mt-1">★ {{ $sellerRating }} ({{ $sellerReviewCount }} ulasan penjual)</p>
+            @endif
         </div>
     </div>
 
-    {{-- TODO Anggota 3: bagian ulasan produk di sini --}}
+        {{-- Ulasan pembeli --}}
+    <div class="mt-6 bg-white border rounded p-4">
+        <h2 class="font-semibold mb-2">Ulasan Pembeli</h2>
+        @forelse ($product->reviews->sortByDesc('created_at') as $review)
+            <div class="border-t pt-3 mt-3">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium">{{ $review->buyer->name ?? 'Pengguna' }}</p>
+                    <p class="text-xs text-gray-400">{{ $review->created_at->format('d M Y') }}</p>
+                </div>
+                <p class="text-yellow-500">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</p>
+                @if ($review->comment)
+                    <p class="text-sm text-gray-700 mt-1">{{ $review->comment }}</p>
+                @endif
+            </div>
+        @empty
+            <p class="text-sm text-gray-500">Belum ada ulasan.</p>
+        @endforelse
+    </div>
 @endsection

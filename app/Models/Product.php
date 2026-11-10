@@ -46,6 +46,12 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    // Satu produk bisa punya banyak ulasan
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function scopePurchasable(Builder $query): Builder
     {
         return $query

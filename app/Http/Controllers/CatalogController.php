@@ -52,9 +52,15 @@ class CatalogController extends Controller
         $isOwner = auth()->check() && auth()->id() === $product->user_id;
         abort_unless($product->status === 'active' || $isOwner, 404);
 
+        $product->load(['category', 'seller', 'reviews.buyer']);
+
         return view('catalog.show', [
-            'product' => $product->load(['category', 'seller']),
+            'product' => $product,
             'isOwner' => $isOwner,
+            'reviewCount' => $product->reviews->count(),
+            'avgRating' => round((float) $product->reviews->avg('rating'), 1),
+            'sellerRating' => round((float) $product->seller?->reviewsReceived()->avg('rating'), 1),
+            'sellerReviewCount' => $product->seller?->reviewsReceived()->count() ?? 0,
         ]);
     }
 }
