@@ -8,5 +8,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class DenyAdmin
 {
-    // method handle yang kamu tempel tadi ada di sini
+    public function handle(Request $request, Closure $next): Response
+    {
+        if ($request->user()?->isAdmin()) {
+            abort(403, 'Admin hanya dapat memantau, tidak dapat bertransaksi.');
+        }
+
+        return $next($request);
+    }
 }
