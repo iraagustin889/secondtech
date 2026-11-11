@@ -60,6 +60,7 @@ Route::middleware(['auth', DenyAdmin::class])->group(function () {
     Route::get('/orders/{order}', [OrderHistoryController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/payment', [PaymentController::class, 'submit'])->name('orders.payment.submit');
+    Route::post('/orders/{order}/payment/simulate', [PaymentController::class, 'simulate'])->name('orders.payment.simulate');
     Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
     Route::get('/orders/{order}/tracking', [OrderHistoryController::class, 'tracking'])->name('orders.tracking');
     Route::post('/orders/{order}/received', OrderReceiptController::class)->name('orders.received');

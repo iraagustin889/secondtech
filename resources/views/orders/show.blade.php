@@ -50,8 +50,15 @@
                 <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'Dibayar saat COD' : 'Status pembayaran: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
             </section>
 
-            @if ($viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
-                <section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Kirim referensi pembayaran</h2><form method="POST" action="{{ route('orders.payment.submit', $order) }}" class="mt-3 space-y-3">@csrf<input name="reference" class="w-full rounded border px-3 py-2" placeholder="Nomor referensi transfer" required><button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Kirim</button></form></section>
+            @if (app()->environment(['local', 'testing']) && $viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
+                <section class="rounded-xl border bg-white p-5">
+                    <h2 class="font-bold">Pembayaran demo</h2>
+                    <p class="mt-2 text-sm text-gray-600">Untuk demo lokal, pembayaran akan langsung diverifikasi otomatis setelah tombol ditekan.</p>
+                    <form method="POST" action="{{ route('orders.payment.simulate', $order) }}" class="mt-3">
+                        @csrf
+                        <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Bayar sekarang (simulasi)</button>
+                    </form>
+                </section>
             @endif
 
             @if ($viewerIsAdmin && $order->status->value === 'pending_payment' && $order->payment?->status->value === 'submitted')

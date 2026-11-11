@@ -37,25 +37,57 @@ class PaymentController extends Controller
     {
         Gate::authorize('verifyPayment', $order);
 
-        DB::transaction(function () use ($order): void {
+        $this->markAsPaid($order, PaymentStatus::Submitted, auth()->id());
+
+        return to_route('orders.show', $order)->with('success', 'Pembayaran dikonfirmasi. Pesanan siap diproses penjual.');
+    }
+
+    public function simulate(Order $order): RedirectResponse
+    {
+        abort_unless(app()->environment(['local', 'testing']), 404);
+
+        Gate::authorize('submitPayment', $order);
+
+        $this->markAsPaid(
+            $order,
+            PaymentStatus::Pending,
+            null,
+            'SIM-'.($order->order_number ?? $order->id),
+        );
+
+        return to_route('orders.show', $order)->with('success', 'Pembayaran demo berhasil diverifikasi otomatis. Pesanan siap diproses penjual.');
+    }
+
+    private function markAsPaid(
+        Order $order,
+        PaymentStatus $expectedPaymentStatus,
+        ?int $verifiedBy,
+        ?string $reference = null,
+    ): void {
+        DB::transaction(function () use ($order, $expectedPaymentStatus, $verifiedBy, $reference): void {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
             $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
 
-            if ($payment->status !== PaymentStatus::Submitted) {
-                abort(422, 'Pembayaran belum dikirim pembeli atau sudah diproses.');
+            if ($lockedOrder->status !== OrderStatus::PendingPayment || $payment->status !== $expectedPaymentStatus) {
+                abort(422, 'Pembayaran belum siap untuk diproses atau sudah diproses.');
             }
 
-            $payment->update([
+            $paymentData = [
                 'status' => PaymentStatus::Paid,
                 'paid_at' => now(),
-                'verified_by' => auth()->id(),
-            ]);
+                'verified_by' => $verifiedBy,
+            ];
+
+            if ($reference !== null) {
+                $paymentData['reference'] = $reference;
+                $paymentData['submitted_at'] = now();
+            }
+
+            $payment->update($paymentData);
             $lockedOrder->update(['status' => OrderStatus::Paid]);
 
             $productIds = $lockedOrder->orderItems()->pluck('product_id');
             Product::query()->whereIn('id', $productIds)->where('status', 'reserved')->update(['status' => 'sold']);
         });
-
-        return to_route('orders.show', $order)->with('success', 'Pembayaran dikonfirmasi. Pesanan siap diproses penjual.');
     }
 }
