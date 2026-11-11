@@ -24,15 +24,18 @@ class OrderHistoryController extends Controller
     public function index(Request $request): View
     {
         $filters = $request->validate(['status' => ['nullable', 'string', 'max:50']]);
+        $selectedStatus = OrderStatus::tryFrom((string) ($filters['status'] ?? ''));
 
         $orders = $request->user()->purchases()
             ->with(['orderItems.product', 'payment', 'shipping'])
-            ->when(OrderStatus::tryFrom((string) ($filters['status'] ?? '')), fn ($query, OrderStatus $status) => $query->where('status', $status))
+            ->when($selectedStatus, fn ($query, OrderStatus $status) => $query->where('status', $status))
             ->latest()
             ->paginate(12)
             ->withQueryString();
 
-        return view('orders.index', compact('orders'));
+        $statuses = OrderStatus::cases();
+
+        return view('orders.index', compact('orders', 'selectedStatus', 'statuses'));
     }
 
     public function show(Order $order): View

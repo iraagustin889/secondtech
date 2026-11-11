@@ -8,8 +8,24 @@
         <a href="{{ route('catalog.index') }}" class="rounded border px-4 py-2">Belanja lagi</a>
     </div>
 
+    <form method="GET" action="{{ route('orders.index') }}" class="mb-6 flex flex-wrap items-end gap-2">
+        <div>
+            <label for="status" class="block text-xs text-gray-500">Status pesanan</label>
+            <select id="status" name="status" class="rounded border px-3 py-2 text-sm">
+                <option value="">Semua status</option>
+                @foreach ($statuses as $status)
+                    <option value="{{ $status->value }}" @selected($selectedStatus === $status)>{{ str_replace('_', ' ', $status->value) }}</option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Filter</button>
+        @if ($selectedStatus)
+            <a href="{{ route('orders.index') }}" class="rounded border px-4 py-2 text-sm hover:bg-gray-50">Reset</a>
+        @endif
+    </form>
+
     @if ($orders->isEmpty())
-        <div class="rounded-xl border border-dashed bg-white p-10 text-center text-gray-600">Belum ada pesanan.</div>
+        <div class="rounded-xl border border-dashed bg-white p-10 text-center text-gray-600">Belum ada pesanan dengan status tersebut.</div>
     @else
         <div class="space-y-4">
             @foreach ($orders as $order)
