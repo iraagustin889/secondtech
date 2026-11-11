@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceFeeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -12,14 +12,14 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderHistoryController;
+use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\ReviewController;
 use App\Http\Middleware\DenyAdmin;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 
@@ -90,6 +90,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/service-fee', [ServiceFeeController::class, 'edit'])->name('service-fee.edit');
         Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -97,6 +98,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
 
         Route::post('/orders/{order}/payment/confirm', [PaymentController::class, 'confirm'])->name('orders.payment.confirm');
+        Route::post('/orders/{order}/payment/reject', [PaymentController::class, 'reject'])->name('orders.payment.reject');
     });
 
 // Halaman penjual: user login non-admin (admin hanya monitoring)

@@ -48,6 +48,9 @@
                 <h2 class="font-bold">Rincian pembayaran</h2>
                 <dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between"><dt>Subtotal</dt><dd>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Ongkir</dt><dd>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Biaya layanan</dt><dd>Rp {{ number_format($order->service_fee, 0, ',', '.') }}</dd></div><div class="flex justify-between border-t pt-2 text-base font-bold"><dt>Total</dt><dd>Rp {{ number_format($order->total, 0, ',', '.') }}</dd></div></dl>
                 <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'Dibayar saat COD' : 'Status pembayaran: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
+                @if ($order->payment?->failure_reason)
+                    <p class="mt-2 rounded bg-red-50 p-2 text-sm text-red-700">Alasan pembayaran ditolak: {{ $order->payment->failure_reason }}</p>
+                @endif
             </section>
 
             @if (app()->environment(['local', 'testing']) && $viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')

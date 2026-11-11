@@ -4,16 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\ShippingStatus;
+use App\Http\Requests\RejectPaymentRequest;
 use App\Http\Requests\SubmitPaymentRequest;
+use App\Models\AdminLog;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Shipping;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class PaymentController extends Controller
 {
+    public function index(): View
+    {
+        $payments = Payment::query()
+            ->where('status', PaymentStatus::Submitted->value)
+            ->with(['order.buyer'])
+            ->latest('submitted_at')
+            ->paginate(15);
+
+        return view('admin.payments.index', compact('payments'));
+    }
+
     public function submit(SubmitPaymentRequest $request, Order $order): RedirectResponse
     {
         Gate::authorize('submitPayment', $order);
@@ -56,6 +72,48 @@ class PaymentController extends Controller
         );
 
         return to_route('orders.show', $order)->with('success', 'Pembayaran demo berhasil diverifikasi otomatis. Pesanan siap diproses penjual.');
+    }
+
+    public function reject(RejectPaymentRequest $request, Order $order): RedirectResponse
+    {
+        Gate::authorize('verifyPayment', $order);
+
+        $reason = $request->validated('failure_reason');
+
+        DB::transaction(function () use ($order, $reason): void {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+            $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedOrder->status !== OrderStatus::PendingPayment || $payment->status !== PaymentStatus::Submitted) {
+                abort(422, 'Pembayaran belum siap untuk ditolak atau sudah diproses.');
+            }
+
+            $payment->update([
+                'status' => PaymentStatus::Failed,
+                'failure_reason' => $reason,
+                'verified_by' => auth()->id(),
+            ]);
+            $lockedOrder->update([
+                'status' => OrderStatus::Cancelled,
+                'cancelled_at' => now(),
+            ]);
+            Shipping::query()->where('order_id', $lockedOrder->id)->update(['status' => ShippingStatus::Cancelled]);
+
+            foreach ($lockedOrder->orderItems as $item) {
+                $product = Product::query()->lockForUpdate()->find($item->product_id);
+
+                if ($product?->status === 'reserved') {
+                    $product->update([
+                        'stock' => $product->stock + $item->qty,
+                        'status' => 'active',
+                    ]);
+                }
+            }
+
+            AdminLog::record('reject_payment', 'order', $lockedOrder->id, $reason);
+        });
+
+        return to_route('admin.payments.index')->with('status', 'Pembayaran ditolak dan produk dikembalikan ke katalog.');
     }
 
     private function markAsPaid(
