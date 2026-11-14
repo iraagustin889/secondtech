@@ -13,7 +13,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('seller.products.store') }}" enctype="multipart/form-data" class="space-y-4">
+   <form id="product-form" method="POST" action="{{ route('seller.products.store') }}" enctype="multipart/form-data" class="space-y-4">
         @csrf
 
         {{-- Nama --}}
@@ -103,5 +103,12 @@
             <a href="{{ route('seller.products.index') }}" class="px-4 py-2 underline">Batal</a>
         </div>
     </form>
+    <script>
+        document.getElementById('product-form').addEventListener('submit', function () {
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan...';
+        });
+    </script>
 </div>
 @endsection
