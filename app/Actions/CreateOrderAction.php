@@ -88,11 +88,13 @@ class CreateOrderAction
                 'estimated_delivery' => $shippingQuote['estimate'] ?? null,
             ]);
 
-            $lockedProduct->update([
-                'stock' => $lockedProduct->stock - 1,
-                'status' => 'reserved',
-            ]);
+            $newStock = $lockedProduct->stock - 1;
 
+            $lockedProduct->update([
+                'stock' => $newStock,
+                'status' => $newStock > 0 ? 'active' : 'reserved',
+            ]);
+            
             return $order->fresh(['orderItems.product', 'payment', 'shipping']);
         }, attempts: 3);
     }
