@@ -18,8 +18,20 @@
                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
                      class="w-full max-h-96 object-cover">
             @else
-                <div class="w-full h-64 bg-gray-100 flex items-center justify-center text-sm text-gray-400">
-                    Tanpa foto
+                @php
+                    $categoryIcon = [
+                        'Laptop' => '💻',
+                        'Smartphone' => '📱',
+                        'Tablet' => '📱',
+                        'Kamera' => '📷',
+                        'Konsol Game' => '🎮',
+                        'Audio & Headphone' => '🎧',
+                        'Aksesoris' => '⌨️',
+                    ][$product->category?->name] ?? '📦';
+                @endphp
+                <div class="flex h-64 w-full flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 text-center">
+                    <span class="text-7xl" aria-hidden="true">{{ $categoryIcon }}</span>
+                    <span class="mt-3 text-sm font-medium text-gray-600">Foto produk belum ditambahkan penjual</span>
                 </div>
             @endif
         </div>

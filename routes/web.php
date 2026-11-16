@@ -17,6 +17,7 @@ use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Middleware\DenyAdmin;
@@ -115,6 +116,7 @@ Route::middleware(['auth', DenyAdmin::class])
     ->prefix('seller')
     ->name('seller.')
     ->group(function () {
+        Route::get('/', [SellerDashboardController::class, 'index'])->name('dashboard');
         // Daftar produk milik penjual
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         // Form tambah produk

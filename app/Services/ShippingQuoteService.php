@@ -17,13 +17,6 @@ class ShippingQuoteService
      */
     public function destinations(string $search): array
     {
-        if ($this->usesLocalSimulator()) {
-            return collect($this->localDestinations())
-                ->filter(fn (array $destination): bool => str_contains(strtolower($destination['name']), strtolower($search)))
-                ->values()
-                ->all();
-        }
-
         try {
             $response = $this->request()->get('destination/domestic-destination', [
                 'search' => $search,
@@ -57,15 +50,10 @@ class ShippingQuoteService
     public function quotes(Product $product, int $destinationId, string $destinationName): array
     {
         $originId = $product->shipping_origin_id
-            ?: config('services.rajaongkir.default_origin_id')
-            ?: ($this->usesLocalSimulator() ? 1 : null);
+            ?: config('services.rajaongkir.default_origin_id');
 
         if (blank($originId)) {
             throw new ShippingQuoteUnavailableException('Penjual belum melengkapi lokasi asal pengiriman produk ini.');
-        }
-
-        if ($this->usesLocalSimulator()) {
-            return $this->simulatedQuotes($product, (int) $originId, $destinationId, $destinationName);
         }
 
         try {
@@ -115,14 +103,6 @@ class ShippingQuoteService
             throw new ShippingQuoteUnavailableException('Nomor resi belum tersedia.');
         }
 
-        if ($this->usesLocalSimulator()) {
-            return [
-                'status' => $shipping->tracking_status ?: 'Paket telah diserahkan kepada ekspedisi (simulasi lokal).',
-                'delivered' => false,
-                'events' => [],
-            ];
-        }
-
         try {
             $response = $this->request()
                 ->asForm()
@@ -158,52 +138,6 @@ class ShippingQuoteService
             ->connectTimeout(3)
             ->timeout(7)
             ->retry([100, 300], throw: false);
-    }
-
-    private function usesLocalSimulator(): bool
-    {
-        return app()->environment(['local', 'testing'])
-            && (bool) config('services.rajaongkir.local_simulator');
-    }
-
-    /**
-     * @return array<int, array{id: int, name: string}>
-     */
-    private function localDestinations(): array
-    {
-        return [
-            ['id' => 1001, 'name' => 'Jakarta Pusat, DKI Jakarta'],
-            ['id' => 1002, 'name' => 'Bandung, Jawa Barat'],
-            ['id' => 1003, 'name' => 'Yogyakarta, DI Yogyakarta'],
-            ['id' => 1004, 'name' => 'Surabaya, Jawa Timur'],
-            ['id' => 1005, 'name' => 'Medan, Sumatera Utara'],
-            ['id' => 1006, 'name' => 'Banyuwangi, Jawa Timur'],
-            ['id' => 1007, 'name' => 'Denpasar, Bali'],
-            ['id' => 1008, 'name' => 'Makassar, Sulawesi Selatan'],
-        ];
-    }
-
-    /**
-     * @return array<int, array{key: string, courier: string, service: string, cost: int, estimate: string, origin_id: int, destination_id: int, destination_name: string}>
-     */
-    private function simulatedQuotes(Product $product, int $originId, int $destinationId, string $destinationName): array
-    {
-        $weightMultiplier = max(1, (int) ceil($product->weight / 1000));
-        $baseCost = 8_000 + (($destinationId % 5) * 2_000) + (($weightMultiplier - 1) * 3_000);
-
-        return collect([
-            ['courier' => 'jne', 'service' => 'REG', 'cost' => $baseCost, 'estimate' => '1–3 hari (simulasi lokal)'],
-            ['courier' => 'jnt', 'service' => 'EZ', 'cost' => $baseCost + 2_000, 'estimate' => '1–2 hari (simulasi lokal)'],
-            ['courier' => 'sicepat', 'service' => 'BEST', 'cost' => $baseCost + 4_000, 'estimate' => '1 hari (simulasi lokal)'],
-        ])->map(function (array $quote) use ($originId, $destinationId, $destinationName): array {
-            return [
-                ...$quote,
-                'key' => hash('sha256', implode('|', [$quote['courier'], $quote['service'], $quote['cost'], $originId, $destinationId])),
-                'origin_id' => $originId,
-                'destination_id' => $destinationId,
-                'destination_name' => $destinationName,
-            ];
-        })->all();
     }
 
     /**

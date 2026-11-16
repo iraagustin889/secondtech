@@ -14,7 +14,7 @@ class ConversationSeeder extends Seeder
      */
     public function run(): void
     {
-        $product = Product::query()->first();
+        $product = Product::query()->purchasable()->first();
 
         if ($product === null) {
             return;
