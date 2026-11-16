@@ -40,6 +40,7 @@ return [
         'key' => env('RAJAONGKIR_API_KEY'),
         'couriers' => env('RAJAONGKIR_COURIERS', 'jne:jnt:sicepat:pos'),
         'default_origin_id' => env('RAJAONGKIR_DEFAULT_ORIGIN_ID'),
+        'local_simulator' => env('RAJAONGKIR_LOCAL_SIMULATOR', true),
     ],
 
 ];

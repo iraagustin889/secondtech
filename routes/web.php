@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\OrderReceiptController;
@@ -48,6 +49,14 @@ Route::middleware('auth')->group(function () {
 
 // Transaksi pembeli: admin dilarang (hanya monitoring)
 Route::middleware(['auth', DenyAdmin::class])->group(function () {
+    Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
+    Route::post('/products/{product}/chat', [ChatController::class, 'startFromProduct'])->name('chats.start.product');
+    Route::post('/orders/{order}/chat', [ChatController::class, 'startFromOrder'])->name('chats.start.order');
+    Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
+    Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('chats.messages.store');
+
     Route::get('/products/{product}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/products/{product}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 

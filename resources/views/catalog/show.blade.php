@@ -95,6 +95,16 @@
                         @if ($sellerReviewCount > 0)
                 <p class="text-xs text-yellow-600 mt-1">★ {{ $sellerRating }} ({{ $sellerReviewCount }} ulasan penjual)</p>
             @endif
+            @auth
+                @if (! $isOwner && ! auth()->user()->isAdmin() && $product->status === 'active')
+                    <form method="POST" action="{{ route('chats.start.product', $product) }}" class="mt-4">
+                        @csrf
+                        <button class="w-full rounded border border-blue-600 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Chat penjual</button>
+                    </form>
+                @endif
+            @else
+                <a href="{{ route('login') }}" class="mt-4 block text-sm text-blue-700 hover:underline">Login untuk chat dengan penjual</a>
+            @endauth
         </div>
     </div>
 

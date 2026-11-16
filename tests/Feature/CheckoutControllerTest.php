@@ -68,4 +68,30 @@ class CheckoutControllerTest extends TestCase
 
         $this->assertDatabaseCount('orders', 0);
     }
+
+    public function test_local_shipping_simulator_returns_quotes_when_no_api_key_is_configured(): void
+    {
+        config()->set('services.rajaongkir.key', null);
+        config()->set('services.rajaongkir.local_simulator', true);
+
+        $buyer = User::factory()->create();
+        $product = Product::factory()->for(Category::factory())->create([
+            'weight' => 500,
+            'stock' => 1,
+            'status' => 'active',
+            'shipping_origin_id' => null,
+        ]);
+
+        $response = $this->actingAs($buyer)->post(route('checkout.quote', $product), [
+            'recipient_name' => 'Pembeli',
+            'recipient_phone' => '08123456789',
+            'recipient_address' => 'Jl. Contoh 1',
+            'recipient_location' => 'Bandung',
+            'destination_id' => 1002,
+            'destination_name' => 'Bandung, Jawa Barat',
+        ]);
+
+        $response->assertRedirectToRoute('checkout.create', $product)
+            ->assertSessionHas('checkout.product.'.$product->id.'.quotes.0.courier', 'jne');
+    }
 }

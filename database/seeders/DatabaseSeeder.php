@@ -44,10 +44,12 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-               // Seeder kategori harus jalan sebelum seeder order (produk butuh kategori)
+        // Seeder kategori harus jalan sebelum seeder order (produk butuh kategori)
         $this->call([
             CategorySeeder::class,
             OrderSeeder::class,
+            ConversationSeeder::class,
+            MessageSeeder::class,
         ]);
     }
 }

@@ -22,6 +22,7 @@
                        Produk Saya
                    </a>
                    <a href="{{ route('seller.orders.index') }}" class="hover:underline">Penjualan</a>
+                   <a href="{{ route('chats.index') }}" class="hover:underline">Pesan</a>
              @endif
                    <a href="{{ route('profile.edit') }}" class="hover:underline">Halo, {{ auth()->user()->name }}</a>
                    <form method="POST" action="{{ route('logout') }}">

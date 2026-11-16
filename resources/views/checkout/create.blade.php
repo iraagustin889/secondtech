@@ -13,7 +13,11 @@
 
         <section class="rounded-xl border bg-white p-6 lg:col-span-2">
             <h2 class="text-2xl font-bold">Alamat & pengiriman</h2>
-            <p class="mt-1 text-sm text-gray-600">Untuk ekspedisi, cari dan pilih lokasi tujuan terlebih dahulu. COD tidak menghitung ongkir.</p>
+            <p class="mt-1 text-sm text-gray-600">Untuk ekspedisi, cari dan pilih lokasi tujuan terlebih dahulu. Setelah data penerima lengkap, ongkir dicek otomatis. COD tidak menghitung ongkir.</p>
+
+            @if (app()->environment(['local', 'testing']) && blank(config('services.rajaongkir.key')) && config('services.rajaongkir.local_simulator'))
+                <p class="mt-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Mode demo lokal aktif: tarif ongkir adalah simulasi. Isi API RajaOngkir untuk menampilkan tarif ekspedisi resmi.</p>
+            @endif
 
             @if ($errors->any())
                 <div class="mt-4 rounded bg-red-50 p-3 text-red-800">
@@ -60,7 +64,7 @@
                 @endif
 
                 <div class="flex flex-wrap gap-3 pt-2">
-                    <button formaction="{{ route('checkout.quote', $product) }}" class="rounded border border-blue-600 px-4 py-2 font-medium text-blue-700">Cek ongkir</button>
+                    <button formaction="{{ route('checkout.quote', $product) }}" class="rounded border border-blue-600 px-4 py-2 font-medium text-blue-700">Cek ulang ongkir</button>
                     <button class="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700">Buat pesanan</button>
                     <a href="{{ route('products.show', $product) }}" class="px-4 py-2 text-gray-600 underline">Batal</a>
                 </div>
@@ -75,6 +79,8 @@
         const destinationName = document.getElementById('destination-name');
         const manualId = document.getElementById('destination-id-manual');
         const message = document.getElementById('destination-message');
+        const checkoutForm = document.getElementById('checkout-form');
+        const quoteUrl = @json(route('checkout.quote', $product));
         const findDestinations = async () => {
             const q = searchInput.value.trim();
             if (q.length < 3) { message.textContent = 'Masukkan minimal 3 huruf.'; return; }
@@ -97,6 +103,17 @@
             const option = destinationSelect.selectedOptions[0];
             destinationName.value = option?.dataset.name || '';
             manualId.value = destinationSelect.value;
+
+            const recipientFields = ['recipient_name', 'recipient_phone', 'recipient_address', 'recipient_location'];
+            const recipientIsComplete = recipientFields.every((field) => checkoutForm.elements[field].value.trim() !== '');
+
+            if (destinationSelect.value && recipientIsComplete) {
+                message.textContent = 'Mengecek ongkir otomatis…';
+                checkoutForm.action = quoteUrl;
+                checkoutForm.submit();
+            } else if (destinationSelect.value) {
+                message.textContent = 'Lengkapi data penerima, lalu tekan “Cek ulang ongkir”.';
+            }
         });
     </script>
 @endsection

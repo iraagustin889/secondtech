@@ -74,9 +74,23 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class, 'verified_by');
     }
 
-    public function reviewsReceived(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function buyerConversations(): HasMany
     {
-    return $this->hasMany(Review::class, 'seller_id');
+        return $this->hasMany(Conversation::class, 'buyer_id');
     }
-    
+
+    public function sellerConversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'seller_id');
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function reviewsReceived(): HasMany
+    {
+        return $this->hasMany(Review::class, 'seller_id');
+    }
 }

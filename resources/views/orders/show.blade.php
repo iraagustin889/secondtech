@@ -44,6 +44,15 @@
         </section>
 
         <aside class="space-y-6">
+            @if ($viewerIsBuyer || $viewerIsSeller)
+                <form method="POST" action="{{ route('chats.start.order', $order) }}">
+                    @csrf
+                    <button class="w-full rounded border border-blue-600 px-4 py-2 font-medium text-blue-700 hover:bg-blue-50">
+                        {{ $viewerIsBuyer ? 'Chat penjual' : 'Chat pembeli' }}
+                    </button>
+                </form>
+            @endif
+
             <section class="rounded-xl border bg-white p-5">
                 <h2 class="font-bold">Rincian pembayaran</h2>
                 <dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between"><dt>Subtotal</dt><dd>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Ongkir</dt><dd>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Biaya layanan</dt><dd>Rp {{ number_format($order->service_fee, 0, ',', '.') }}</dd></div><div class="flex justify-between border-t pt-2 text-base font-bold"><dt>Total</dt><dd>Rp {{ number_format($order->total, 0, ',', '.') }}</dd></div></dl>
