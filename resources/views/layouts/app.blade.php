@@ -39,7 +39,6 @@
                         <a href="{{ route('admin.dashboard') }}" class="rounded-xl px-4 py-2.5 font-semibold text-[#1257d6] hover:bg-blue-50">Admin</a>
                     @else
                         <a href="{{ route('seller.products.create') }}" class="hidden rounded-xl bg-[#1257d6] px-4 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 sm:inline-flex">+ Jual Barang</a>
-                        <a href="{{ route('chats.index') }}" class="rounded-xl p-3 text-base text-slate-500 hover:bg-slate-100 hover:text-[#1257d6]" aria-label="Pesan">◌</a>
                         <a href="{{ route('seller.dashboard') }}" class="hidden rounded-xl px-3 py-3 font-medium text-slate-600 hover:bg-slate-100 2xl:inline-flex">Dashboard</a>
                     @endif
                     <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 rounded-xl p-2 hover:bg-slate-100">
@@ -71,6 +70,17 @@
     <div class="border-b border-blue-200 bg-[#1257d6] text-center text-sm font-medium text-white">
         <div class="mx-auto max-w-7xl px-4 py-2.5">Perhatian: seluruh transaksi tercatat di sistem. Gunakan chat dan resi untuk keamanan pembelian.</div>
     </div>
+
+    @auth
+        @unless (auth()->user()->isAdmin())
+            <a href="{{ route('chats.index') }}" class="fixed bottom-5 left-5 z-50 inline-flex items-center gap-3 rounded-full bg-[#1257d6] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/25 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label="Buka pesan">
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.9 9.9 0 0 1-4.255-.949L3 20l1.207-3.622A7.33 7.33 0 0 1 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z" />
+                </svg>
+                <span>Chat</span>
+            </a>
+        @endunless
+    @endauth
 
     <main class="mx-auto max-w-7xl px-4 py-6 lg:px-6 lg:py-8">
         @if (session('success'))
