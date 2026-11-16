@@ -69,9 +69,9 @@ class CheckoutControllerTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_local_shipping_simulator_returns_quotes_when_no_api_key_is_configured(): void
+    public function test_local_shipping_simulator_returns_quotes_even_when_an_api_key_is_configured(): void
     {
-        config()->set('services.rajaongkir.key', null);
+        config()->set('services.rajaongkir.key', 'configured-api-key');
         config()->set('services.rajaongkir.local_simulator', true);
 
         $buyer = User::factory()->create();
@@ -93,5 +93,19 @@ class CheckoutControllerTest extends TestCase
 
         $response->assertRedirectToRoute('checkout.create', $product)
             ->assertSessionHas('checkout.product.'.$product->id.'.quotes.0.courier', 'jne');
+    }
+
+    public function test_local_shipping_simulator_searches_destinations_even_when_an_api_key_is_configured(): void
+    {
+        config()->set('services.rajaongkir.key', 'configured-api-key');
+        config()->set('services.rajaongkir.local_simulator', true);
+
+        $buyer = User::factory()->create();
+
+        $this->actingAs($buyer)
+            ->getJson(route('shipping.destinations', ['q' => 'Banyuwangi']))
+            ->assertOk()
+            ->assertJsonPath('data.0.id', 1006)
+            ->assertJsonPath('data.0.name', 'Banyuwangi, Jawa Timur');
     }
 }

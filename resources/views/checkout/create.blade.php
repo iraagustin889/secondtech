@@ -15,8 +15,8 @@
             <h2 class="text-2xl font-bold">Alamat & pengiriman</h2>
             <p class="mt-1 text-sm text-gray-600">Untuk ekspedisi, cari dan pilih lokasi tujuan terlebih dahulu. Setelah data penerima lengkap, ongkir dicek otomatis. COD tidak menghitung ongkir.</p>
 
-            @if (app()->environment(['local', 'testing']) && blank(config('services.rajaongkir.key')) && config('services.rajaongkir.local_simulator'))
-                <p class="mt-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Mode demo lokal aktif: tarif ongkir adalah simulasi. Isi API RajaOngkir untuk menampilkan tarif ekspedisi resmi.</p>
+            @if (app()->environment(['local', 'testing']) && config('services.rajaongkir.local_simulator'))
+                <p class="mt-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Mode demo lokal aktif: tarif ongkir adalah simulasi. Untuk memakai tarif ekspedisi resmi, set <code>RAJAONGKIR_LOCAL_SIMULATOR=false</code>.</p>
             @endif
 
             @if ($errors->any())

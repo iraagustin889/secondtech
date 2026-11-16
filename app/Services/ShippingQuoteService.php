@@ -163,8 +163,7 @@ class ShippingQuoteService
     private function usesLocalSimulator(): bool
     {
         return app()->environment(['local', 'testing'])
-            && (bool) config('services.rajaongkir.local_simulator')
-            && blank(config('services.rajaongkir.key'));
+            && (bool) config('services.rajaongkir.local_simulator');
     }
 
     /**
@@ -178,6 +177,9 @@ class ShippingQuoteService
             ['id' => 1003, 'name' => 'Yogyakarta, DI Yogyakarta'],
             ['id' => 1004, 'name' => 'Surabaya, Jawa Timur'],
             ['id' => 1005, 'name' => 'Medan, Sumatera Utara'],
+            ['id' => 1006, 'name' => 'Banyuwangi, Jawa Timur'],
+            ['id' => 1007, 'name' => 'Denpasar, Bali'],
+            ['id' => 1008, 'name' => 'Makassar, Sulawesi Selatan'],
         ];
     }
 
