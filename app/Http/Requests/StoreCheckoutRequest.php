@@ -30,6 +30,11 @@ class StoreCheckoutRequest extends FormRequest
             'recipient_address' => ['required', 'string', 'max:2000'],
             'recipient_location' => ['required', 'string', 'max:150'],
             'shipping_method' => ['required', Rule::enum(ShippingMethod::class)],
+            'payment_method' => [
+                Rule::requiredIf($this->input('shipping_method') === ShippingMethod::Expedition->value),
+                'nullable',
+                Rule::in(['bank_transfer', 'qris', 'e_wallet']),
+            ],
             'quote_key' => ['nullable', 'string', 'size:64'],
         ];
     }

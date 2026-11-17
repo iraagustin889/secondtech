@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\RefundRequest;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 
@@ -43,6 +44,7 @@ class DashboardController extends Controller
             'inactiveUsers' => User::where('is_active', false)->count(),
             'totalOrders' => Order::count(),
             'pendingPayments' => Payment::query()->where('status', PaymentStatus::Submitted->value)->count(),
+            'pendingRefunds' => RefundRequest::query()->where('status', 'requested')->count(),
             'activeOrders' => Order::query()->whereIn('status', $activeStatuses)->count(),
             'totalSales' => Order::query()->whereIn('status', $successfulStatuses)->sum('total'),
         ]);

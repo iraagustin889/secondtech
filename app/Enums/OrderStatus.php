@@ -14,4 +14,6 @@ enum OrderStatus: string
     case CodRequested = 'cod_requested';
     case CodAgreed = 'cod_agreed';
     case CodCompleted = 'cod_completed';
+    case Disputed = 'disputed';
+    case Refunded = 'refunded';
 }

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Shipping;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 
@@ -27,7 +28,7 @@ class ShippingQuoteService
             throw new ShippingQuoteUnavailableException('Layanan pencarian lokasi sedang tidak dapat dihubungi.');
         }
 
-        $data = $this->responseData($response->json(), 'Lokasi tujuan tidak ditemukan.');
+        $data = $this->responseData($response, 'Lokasi tujuan tidak ditemukan.');
 
         return collect($data)
             ->filter(fn (mixed $destination): bool => is_array($destination) && isset($destination['id']))
@@ -70,7 +71,7 @@ class ShippingQuoteService
             throw new ShippingQuoteUnavailableException('Layanan ongkir sedang tidak dapat dihubungi.');
         }
 
-        $data = $this->responseData($response->json(), 'Ongkos kirim tidak dapat diperoleh saat ini.');
+        $data = $this->responseData($response, 'Ongkos kirim tidak dapat diperoleh saat ini.');
 
         return collect($data)
             ->filter(fn (mixed $quote): bool => is_array($quote) && isset($quote['cost'], $quote['code'], $quote['service']))
@@ -115,7 +116,7 @@ class ShippingQuoteService
             throw new ShippingQuoteUnavailableException('Layanan pelacakan sedang tidak dapat dihubungi.');
         }
 
-        $data = $this->responseData($response->json(), 'Status pengiriman belum dapat diperoleh.');
+        $data = $this->responseData($response, 'Status pengiriman belum dapat diperoleh.');
 
         return [
             'status' => (string) data_get($data, 'delivery_status.status', data_get($data, 'summary.status', 'Dalam perjalanan')),
@@ -143,12 +144,25 @@ class ShippingQuoteService
     /**
      * @return array<int, mixed>|array<string, mixed>
      */
-    private function responseData(mixed $response, string $fallbackMessage): array
+    private function responseData(Response $response, string $fallbackMessage): array
     {
-        if (! is_array($response) || data_get($response, 'meta.status') !== 'success' || ! is_array($response['data'] ?? null)) {
-            throw new ShippingQuoteUnavailableException((string) data_get($response, 'meta.message', $fallbackMessage));
+        $payload = $response->json();
+        $message = is_array($payload) ? data_get($payload, 'meta.message') : null;
+
+        if (! $response->successful()) {
+            $fallbackMessage = match ($response->status()) {
+                401, 403 => 'API ongkir menolak permintaan. Periksa RAJAONGKIR_API_KEY di file .env.',
+                429 => 'Permintaan ongkir terlalu banyak. Tunggu sebentar lalu coba lagi.',
+                default => $fallbackMessage,
+            };
+
+            throw new ShippingQuoteUnavailableException((string) ($message ?: $fallbackMessage));
         }
 
-        return $response['data'];
+        if (! is_array($payload) || data_get($payload, 'meta.status') !== 'success' || ! is_array($payload['data'] ?? null)) {
+            throw new ShippingQuoteUnavailableException((string) ($message ?: $fallbackMessage));
+        }
+
+        return $payload['data'];
     }
 }

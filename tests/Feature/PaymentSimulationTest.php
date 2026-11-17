@@ -68,7 +68,7 @@ class PaymentSimulationTest extends TestCase
         ]);
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
-            'status' => 'sold',
+            'status' => 'reserved',
         ]);
 
         $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();

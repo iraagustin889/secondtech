@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    // Status yang TIDAK dihitung sebagai penjualan
-    private const EXCLUDED = ['pending_payment', 'cancelled'];
+    // Hanya transaksi berbayar yang dihitung. Dana sengketa/refund belum atau tidak menjadi penjualan.
+    private const SALE_STATUSES = ['paid', 'processing', 'shipped', 'received', 'completed', 'cod_completed'];
 
     public function index(Request $request)
     {
@@ -25,7 +25,7 @@ class ReportController extends Controller
             ->when($from, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($to, fn ($q, $d) => $q->whereDate('created_at', '<=', $d));
 
-        $sales = (clone $base)->whereNotIn('status', self::EXCLUDED);
+        $sales = (clone $base)->whereIn('status', self::SALE_STATUSES);
 
         $summary = [
             'total_orders' => (clone $base)->count(),

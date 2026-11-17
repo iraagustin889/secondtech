@@ -9,7 +9,7 @@
     </div>
 
     {{-- Form filter (GET supaya URL bisa dibagikan dan pagination tetap membawa filter) --}}
-    <form method="GET" action="{{ route('products.index') }}"
+    <form id="catalog-filter" method="GET" action="{{ route('products.index') }}"
           class="mb-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-6">
         <div class="min-w-0 xl:col-span-2">
             <label for="q" class="block text-xs text-gray-500 mb-1">Cari nama produk</label>

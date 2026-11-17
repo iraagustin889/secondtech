@@ -93,4 +93,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class, 'seller_id');
     }
+
+    public function refundRequests(): HasMany
+    {
+        return $this->hasMany(RefundRequest::class, 'buyer_id');
+    }
+
+    public function resolvedRefundRequests(): HasMany
+    {
+        return $this->hasMany(RefundRequest::class, 'resolved_by');
+    }
 }

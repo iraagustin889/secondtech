@@ -9,6 +9,7 @@ use App\Exceptions\ShippingQuoteUnavailableException;
 use App\Http\Requests\QuoteShippingRequest;
 use App\Http\Requests\StoreCheckoutRequest;
 use App\Models\Product;
+use App\Models\ServiceFeeConfiguration;
 use App\Services\ShippingQuoteService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -24,6 +25,8 @@ class CheckoutController extends Controller
         /** @var array{recipient_name?: string, recipient_phone?: string, recipient_address?: string, recipient_location?: string, destination_id?: int, destination_name?: string, quotes?: array<int, array<string, mixed>>} $savedCheckout */
         $savedCheckout = $request->session()->get($this->sessionKey($product), []);
         $user = $request->user();
+        $activeServiceFee = ServiceFeeConfiguration::active();
+        $serviceFee = ServiceFeeConfiguration::calculate((int) $product->price);
 
         return view('checkout.create', [
             'product' => $product,
@@ -34,6 +37,12 @@ class CheckoutController extends Controller
                 'recipient_address' => old('recipient_address', $savedCheckout['recipient_address'] ?? $user?->address),
                 'recipient_location' => old('recipient_location', $savedCheckout['recipient_location'] ?? $user?->location),
             ],
+            'serviceFee' => $serviceFee,
+            'serviceFeeLabel' => $activeServiceFee
+                ? ($activeServiceFee->type === 'percentage'
+                    ? rtrim(rtrim(number_format((float) $activeServiceFee->value, 2, ',', '.'), '0'), ',').'%'
+                    : 'Nominal')
+                : null,
         ]);
     }
 

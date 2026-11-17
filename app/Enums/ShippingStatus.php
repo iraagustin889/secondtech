@@ -13,4 +13,5 @@ enum ShippingStatus: string
     case CodRequested = 'cod_requested';
     case CodAgreed = 'cod_agreed';
     case CodCompleted = 'cod_completed';
+    case Returned = 'returned';
 }

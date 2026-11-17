@@ -20,7 +20,7 @@ class OrderPolicy
     public function cancel(User $user, Order $order): bool
     {
         return $order->buyer_id === $user->id
-            && in_array($order->status, [OrderStatus::PendingPayment, OrderStatus::CodRequested], true);
+            && in_array($order->status, [OrderStatus::PendingPayment, OrderStatus::CodRequested, OrderStatus::Paid], true);
     }
 
     public function submitPayment(User $user, Order $order): bool

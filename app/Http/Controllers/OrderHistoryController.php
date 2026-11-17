@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\ShippingMethod;
 use App\Enums\ShippingStatus;
 use App\Exceptions\ShippingQuoteUnavailableException;
+use App\Http\Requests\CancelOrderRequest;
 use App\Http\Requests\ConfirmCodHandoverRequest;
 use App\Models\Order;
 use App\Models\Payment;
@@ -43,45 +44,63 @@ class OrderHistoryController extends Controller
         Gate::authorize('view', $order);
 
         return view('orders.show', [
-            'order' => $order->load(['buyer', 'orderItems.product.seller', 'payment.verifier', 'shipping']),
+            'order' => $order->load(['buyer', 'orderItems.product.seller', 'payment.verifier', 'shipping', 'refundRequest.resolver']),
         ]);
     }
 
-    public function cancel(Order $order): RedirectResponse
+    public function cancel(CancelOrderRequest $request, Order $order): RedirectResponse
     {
         Gate::authorize('cancel', $order);
 
-        DB::transaction(function () use ($order): void {
+        $data = $request->validated();
+
+        $wasPaid = DB::transaction(function () use ($order, $data): bool {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
 
-            if (! in_array($lockedOrder->status, [OrderStatus::PendingPayment, OrderStatus::CodRequested], true)) {
+            if (! in_array($lockedOrder->status, [OrderStatus::PendingPayment, OrderStatus::CodRequested, OrderStatus::Paid], true)) {
                 abort(422, 'Pesanan ini tidak dapat dibatalkan.');
             }
+
+            $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->first();
+            $wasPaid = $payment?->status === PaymentStatus::Paid;
 
             $lockedOrder->update([
                 'status' => OrderStatus::Cancelled,
                 'cancelled_at' => now(),
+                'cancellation_reason' => $data['reason'],
+                'cancellation_note' => $data['note'] ?? null,
             ]);
 
-            Payment::query()->where('order_id', $lockedOrder->id)->update([
-                'status' => PaymentStatus::Failed,
-                'failure_reason' => 'Dibatalkan oleh pembeli.',
-            ]);
+            if ($payment) {
+                $payment->update([
+                    'status' => $wasPaid ? PaymentStatus::Refunded : PaymentStatus::Cancelled,
+                    'failure_reason' => 'Dibatalkan pembeli: '.$data['reason'],
+                    'cancelled_at' => now(),
+                    'refunded_at' => $wasPaid ? now() : null,
+                ]);
+            }
             Shipping::query()->where('order_id', $lockedOrder->id)->update(['status' => ShippingStatus::Cancelled]);
 
             foreach ($lockedOrder->orderItems as $item) {
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
 
-                if ($product?->status === 'reserved') {
+                if ($product) {
                     $product->update([
                         'stock' => $product->stock + $item->qty,
-                        'status' => 'active',
+                        'status' => $product->status === 'hidden' ? 'hidden' : 'active',
                     ]);
                 }
             }
+
+            return $wasPaid;
         });
 
-        return to_route('orders.show', $order)->with('success', 'Pesanan dibatalkan dan produk dikembalikan ke katalog.');
+        return to_route('orders.show', $order)->with(
+            'success',
+            $wasPaid
+                ? 'Pesanan dibatalkan, dana lokal dikembalikan, dan stok diperbarui.'
+                : 'Pesanan dibatalkan dan stok diperbarui.',
+        );
     }
 
     public function confirmCod(ConfirmCodHandoverRequest $request, Order $order): RedirectResponse
@@ -140,6 +159,7 @@ class OrderHistoryController extends Controller
                 Payment::query()->where('order_id', $lockedOrder->id)->update([
                     'status' => PaymentStatus::Paid,
                     'paid_at' => now(),
+                    'released_at' => now(),
                 ]);
                 $lockedOrder->update(['status' => OrderStatus::Completed]);
 

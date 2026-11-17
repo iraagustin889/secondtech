@@ -76,11 +76,21 @@
                         </div>
                     @endif
                 </section>
+
+                <section id="payment-method-section" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div><h2 class="font-bold text-slate-900">Metode pembayaran</h2><p class="mt-1 text-xs text-slate-500">Pilih metode untuk gerbang pembayaran lokal. Dana ditahan oleh rekber sampai transaksi selesai.</p></div>
+                    @error('payment_method')<p class="mt-3 text-sm text-red-600">{{ $message }}</p>@enderror
+                    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                        <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-4 transition has-[:checked]:border-[#1257d6] has-[:checked]:bg-blue-50"><input type="radio" name="payment_method" value="bank_transfer" class="mt-1" @checked(old('payment_method', 'bank_transfer') === 'bank_transfer')><span><strong class="text-sm text-slate-800">Virtual Account</strong><span class="mt-1 block text-xs text-slate-500">Pembayaran bank otomatis</span></span></label>
+                        <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-4 transition has-[:checked]:border-[#1257d6] has-[:checked]:bg-blue-50"><input type="radio" name="payment_method" value="qris" class="mt-1" @checked(old('payment_method') === 'qris')><span><strong class="text-sm text-slate-800">QRIS</strong><span class="mt-1 block text-xs text-slate-500">Kode QR untuk demo lokal</span></span></label>
+                        <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-4 transition has-[:checked]:border-[#1257d6] has-[:checked]:bg-blue-50"><input type="radio" name="payment_method" value="e_wallet" class="mt-1" @checked(old('payment_method') === 'e_wallet')><span><strong class="text-sm text-slate-800">E-Wallet</strong><span class="mt-1 block text-xs text-slate-500">Saldo digital untuk demo lokal</span></span></label>
+                    </div>
+                </section>
             </div>
 
             <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-28">
                 <h2 class="font-bold text-slate-900">Ringkasan Transaksi</h2>
-                <dl class="mt-5 space-y-3 text-sm"><div class="flex justify-between gap-4"><dt class="text-slate-500">Subtotal produk</dt><dd class="font-medium text-slate-800">Rp {{ number_format($product->price, 0, ',', '.') }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Ongkos kirim</dt><dd id="summary-shipping-cost" class="text-right text-xs text-slate-500">Pilih layanan</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Biaya layanan</dt><dd class="font-medium text-slate-800">Rp 0</dd></div><div class="border-t border-slate-100 pt-4"><div class="flex justify-between gap-4"><dt class="font-bold text-slate-800">Total sementara</dt><dd id="summary-total" class="text-lg font-bold text-[#1257d6]">Rp {{ number_format($product->price, 0, ',', '.') }}</dd></div><p class="mt-1 text-[11px] text-slate-500">Total akhir diperbarui sesuai ongkir yang dipilih.</p></div></dl>
+                <dl class="mt-5 space-y-3 text-sm"><div class="flex justify-between gap-4"><dt class="text-slate-500">Subtotal produk</dt><dd class="font-medium text-slate-800">Rp {{ number_format($product->price, 0, ',', '.') }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Ongkos kirim</dt><dd id="summary-shipping-cost" class="text-right text-xs text-slate-500">Pilih layanan</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Biaya layanan @if($serviceFeeLabel)<span class="text-[11px]">({{ $serviceFeeLabel }})</span>@endif</dt><dd class="font-medium text-slate-800">Rp {{ number_format($serviceFee, 0, ',', '.') }}</dd></div><div class="border-t border-slate-100 pt-4"><div class="flex justify-between gap-4"><dt class="font-bold text-slate-800">Total sementara</dt><dd id="summary-total" class="text-lg font-bold text-[#1257d6]">Rp {{ number_format((int) $product->price + $serviceFee, 0, ',', '.') }}</dd></div><p class="mt-1 text-[11px] text-slate-500">Total akhir diperbarui sesuai ongkir yang dipilih.</p></div></dl>
                 <button formaction="{{ route('checkout.quote', $product) }}" class="mt-6 w-full rounded-lg border border-[#1257d6] px-4 py-2.5 text-sm font-semibold text-[#1257d6] hover:bg-blue-50">Cek ongkir resmi</button>
                 <button class="mt-3 w-full rounded-lg bg-[#1257d6] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Lanjutkan pembayaran</button>
                 <a href="{{ route('products.show', $product) }}" class="mt-3 block text-center text-xs font-medium text-slate-500 hover:text-[#1257d6]">Batalkan pesanan</a>
@@ -101,10 +111,20 @@
         const shippingCost = document.getElementById('summary-shipping-cost');
         const total = document.getElementById('summary-total');
         const productPrice = {{ (int) $product->price }};
+        const serviceFee = {{ $serviceFee }};
+        const paymentSection = document.getElementById('payment-method-section');
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
         const rupiah = (amount) => `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`;
         const updateTotal = (cost, label = null) => {
             shippingCost.textContent = label || rupiah(cost);
-            total.textContent = rupiah(productPrice + cost);
+            total.textContent = rupiah(productPrice + serviceFee + cost);
+        };
+        const updateCheckoutMode = () => {
+            const method = document.querySelector('input[name="shipping_method"]:checked')?.value;
+            const isCod = method === 'cod';
+            paymentSection.classList.toggle('hidden', isCod);
+            paymentMethods.forEach((input) => { input.disabled = isCod; });
+            if (isCod) updateTotal(0, 'Rp 0');
         };
         const findDestinations = async () => {
             const q = searchInput.value.trim();
@@ -146,8 +166,9 @@
         });
         document.querySelectorAll('input[name="shipping_method"]').forEach((input) => {
             input.addEventListener('change', () => {
-                if (input.value === 'cod') updateTotal(0, 'Rp 0');
+                updateCheckoutMode();
             });
         });
+        updateCheckoutMode();
     </script>
 @endsection

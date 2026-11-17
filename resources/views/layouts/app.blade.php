@@ -17,7 +17,7 @@
             <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 xl:flex">
                 <a href="{{ route('catalog.index') }}" class="hover:text-[#1257d6]">Beranda</a>
                 <a href="{{ route('products.index') }}" class="hover:text-[#1257d6]">Marketplace</a>
-                <a href="{{ route('products.index') }}" class="hover:text-[#1257d6]">Kategori</a>
+                <a href="{{ route('products.index') }}#catalog-filter" class="hover:text-[#1257d6]">Kategori</a>
                 @auth
                     @unless (auth()->user()->isAdmin())
                         <a href="{{ route('orders.index') }}" class="hover:text-[#1257d6]">Pesanan Saya</a>
@@ -57,11 +57,11 @@
         </div>
         <div class="border-t border-slate-100 bg-white">
             <div class="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto px-4 py-3 text-xs font-medium text-slate-500 sm:text-sm lg:px-6">
-                <a href="{{ route('products.index') }}" class="whitespace-nowrap hover:text-[#1257d6]">Smartphone & Tablet</a>
-                <a href="{{ route('products.index') }}" class="whitespace-nowrap hover:text-[#1257d6]">Laptop & Komputer</a>
-                <a href="{{ route('products.index') }}" class="whitespace-nowrap hover:text-[#1257d6]">Komponen & GPU</a>
-                <a href="{{ route('products.index') }}" class="whitespace-nowrap hover:text-[#1257d6]">Audio & Kamera</a>
-                <a href="{{ route('products.index') }}" class="whitespace-nowrap hover:text-[#1257d6]">Aksesoris</a>
+                <a href="{{ route('products.index', ['category_group' => 'mobile']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Smartphone & Tablet</a>
+                <a href="{{ route('products.index', ['category_slug' => 'laptop']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Laptop & Komputer</a>
+                <a href="{{ route('products.index', ['category_group' => 'components']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Komponen & GPU</a>
+                <a href="{{ route('products.index', ['category_group' => 'media']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Audio & Kamera</a>
+                <a href="{{ route('products.index', ['category_slug' => 'aksesoris']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Aksesoris</a>
                 <span class="ml-auto hidden whitespace-nowrap text-emerald-600 lg:inline">✓ Transaksi aman & terlacak</span>
             </div>
         </div>
@@ -73,7 +73,7 @@
 
     @auth
         @unless (auth()->user()->isAdmin())
-            <a href="{{ route('chats.index') }}" class="fixed bottom-5 left-5 z-50 inline-flex items-center gap-3 rounded-full bg-[#1257d6] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/25 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label="Buka pesan">
+            <a href="{{ route('chats.index') }}" class="fixed bottom-5 right-5 z-50 inline-flex items-center gap-3 rounded-full bg-[#1257d6] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/25 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label="Buka pesan">
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.9 9.9 0 0 1-4.255-.949L3 20l1.207-3.622A7.33 7.33 0 0 1 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z" />
                 </svg>

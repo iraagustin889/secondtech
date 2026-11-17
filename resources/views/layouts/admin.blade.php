@@ -37,6 +37,10 @@
                    class="block rounded px-3 py-2 {{ request()->routeIs('admin.payments.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
                     Verifikasi Pembayaran
                 </a>
+                <a href="{{ route('admin.refund-requests.index') }}"
+                   class="block rounded px-3 py-2 {{ request()->routeIs('admin.refund-requests.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
+                    Sengketa & Pengembalian
+                </a>
                 <a href="{{ route('admin.logs.index') }}"
                   class="block rounded px-3 py-2 {{ request()->routeIs('admin.logs.*') ? 'bg-blue-50 text-blue-700 font-semibold' : 'hover:bg-gray-100' }}">
                    Log Aktivitas

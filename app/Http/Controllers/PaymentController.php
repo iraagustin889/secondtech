@@ -71,7 +71,7 @@ class PaymentController extends Controller
             'SIM-'.($order->order_number ?? $order->id),
         );
 
-        return to_route('orders.show', $order)->with('success', 'Pembayaran demo berhasil diverifikasi otomatis. Pesanan siap diproses penjual.');
+        return to_route('orders.show', $order)->with('success', 'Pembayaran berhasil. Dana ditahan aman oleh rekber lokal sampai pesanan selesai.');
     }
 
     public function reject(RejectPaymentRequest $request, Order $order): RedirectResponse
@@ -144,8 +144,8 @@ class PaymentController extends Controller
             $payment->update($paymentData);
             $lockedOrder->update(['status' => OrderStatus::Paid]);
 
-            $productIds = $lockedOrder->orderItems()->pluck('product_id');
-            Product::query()->whereIn('id', $productIds)->where('status', 'reserved')->update(['status' => 'sold']);
+            // Produk tetap berstatus reserved sampai pembeli mengonfirmasi pesanan selesai.
+            // Ini menjaga dana dan stok dalam alur rekber lokal.
         });
     }
 }

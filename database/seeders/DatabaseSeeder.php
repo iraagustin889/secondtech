@@ -47,6 +47,7 @@ class DatabaseSeeder extends Seeder
         // Kategori harus jalan sebelum katalog agar setiap produk memiliki kategori yang benar.
         $this->call([
             CategorySeeder::class,
+            ServiceFeeSeeder::class,
             MarketplaceCatalogSeeder::class,
             ConversationSeeder::class,
             MessageSeeder::class,

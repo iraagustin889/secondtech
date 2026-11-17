@@ -45,6 +45,18 @@ php artisan storage:link
 npm install
 ```
 
+### Ongkir resmi (RajaOngkir)
+
+Checkout memakai API RajaOngkir langsung, bukan tarif simulasi. Buat API key di RajaOngkir/Komerce lalu isi file `.env` lokal setiap anggota tim (jangan commit key):
+
+```dotenv
+RAJAONGKIR_API_KEY=isi_api_key_milik_tim
+RAJAONGKIR_DEFAULT_ORIGIN_ID=isi_id_lokasi_asal_penjual
+RAJAONGKIR_COURIERS=jne:jnt:sicepat:pos
+```
+
+Tanpa `RAJAONGKIR_API_KEY`, pencarian lokasi dan tarif ekspedisi memang tidak dapat dijalankan. COD tetap dapat digunakan.
+
 Untuk mengulang dari awal (data lama dihapus):
 
 ```bash

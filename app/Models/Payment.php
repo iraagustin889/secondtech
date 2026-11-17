@@ -20,6 +20,9 @@ class Payment extends Model
         'reference',
         'submitted_at',
         'paid_at',
+        'released_at',
+        'cancelled_at',
+        'refunded_at',
         'verified_by',
         'failure_reason',
     ];
@@ -30,6 +33,9 @@ class Payment extends Model
             'status' => PaymentStatus::class,
             'submitted_at' => 'datetime',
             'paid_at' => 'datetime',
+            'released_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -41,5 +47,16 @@ class Payment extends Model
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function methodLabel(): string
+    {
+        return match ($this->method) {
+            'bank_transfer', 'transfer_bank' => 'Virtual Account',
+            'qris' => 'QRIS',
+            'e_wallet' => 'E-Wallet',
+            'cod' => 'COD',
+            default => str($this->method)->replace('_', ' ')->title()->toString(),
+        };
     }
 }

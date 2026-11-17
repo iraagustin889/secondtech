@@ -96,6 +96,7 @@ class OrderController extends Controller
                 Payment::query()->where('order_id', $lockedOrder->id)->update([
                     'status' => PaymentStatus::Paid,
                     'paid_at' => now(),
+                    'released_at' => now(),
                 ]);
                 $lockedOrder->update(['status' => OrderStatus::Completed]);
                 $productIds = $lockedOrder->orderItems()->pluck('product_id');

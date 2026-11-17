@@ -16,6 +16,7 @@ use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RefundRequestController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
@@ -69,6 +70,7 @@ Route::middleware(['auth', DenyAdmin::class])->group(function () {
     Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderHistoryController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/refund-requests', [RefundRequestController::class, 'store'])->name('orders.refund-requests.store');
     Route::post('/orders/{order}/payment', [PaymentController::class, 'submit'])->name('orders.payment.submit');
     Route::post('/orders/{order}/payment/simulate', [PaymentController::class, 'simulate'])->name('orders.payment.simulate');
     Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
@@ -101,6 +103,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/refund-requests', [RefundRequestController::class, 'index'])->name('refund-requests.index');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -109,6 +112,8 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::post('/orders/{order}/payment/confirm', [PaymentController::class, 'confirm'])->name('orders.payment.confirm');
         Route::post('/orders/{order}/payment/reject', [PaymentController::class, 'reject'])->name('orders.payment.reject');
+        Route::post('/refund-requests/{refundRequest}/approve', [RefundRequestController::class, 'approve'])->name('refund-requests.approve');
+        Route::post('/refund-requests/{refundRequest}/reject', [RefundRequestController::class, 'reject'])->name('refund-requests.reject');
     });
 
 // Halaman penjual: user login non-admin (admin hanya monitoring)

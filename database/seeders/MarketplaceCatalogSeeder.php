@@ -130,6 +130,16 @@ class MarketplaceCatalogSeeder extends Seeder
                 'location' => 'Banyuwangi',
             ],
             [
+                'seller' => 'seller@secondtech.test',
+                'category' => 'Komponen & GPU',
+                'name' => 'ASUS Dual Radeon RX 6600 8GB',
+                'description' => 'Kartu grafis Radeon RX 6600 8GB. Dipakai ringan untuk gaming, suhu stabil, port HDMI dan DisplayPort berfungsi normal. Termasuk dus.',
+                'price' => 2_650_000,
+                'condition' => 'Bekas baik',
+                'weight' => 950,
+                'location' => 'Banyuwangi',
+            ],
+            [
                 'seller' => 'kamera.malang@secondtech.test',
                 'category' => 'Kamera',
                 'name' => 'GoPro HERO10 Black',

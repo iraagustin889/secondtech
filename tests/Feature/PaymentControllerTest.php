@@ -49,7 +49,7 @@ class PaymentControllerTest extends TestCase
 
         $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'status' => PaymentStatus::Paid->value, 'verified_by' => $admin->id]);
         $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => OrderStatus::Paid->value]);
-        $this->assertDatabaseHas('products', ['id' => $product->id, 'status' => 'sold']);
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'status' => 'reserved']);
     }
 
     public function test_buyer_cannot_confirm_a_payment(): void

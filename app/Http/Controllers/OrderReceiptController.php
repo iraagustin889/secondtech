@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +26,10 @@ class OrderReceiptController extends Controller
             }
 
             $locked->update(['status' => OrderStatus::Completed]);
+
+            Payment::query()->where('order_id', $locked->id)->where('status', PaymentStatus::Paid)->update([
+                'released_at' => now(),
+            ]);
 
             $productIds = $locked->orderItems()->pluck('product_id');
             Product::query()->whereIn('id', $productIds)->where('status', 'reserved')->update(['status' => 'sold']);

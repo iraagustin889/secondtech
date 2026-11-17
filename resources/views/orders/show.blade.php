@@ -7,6 +7,7 @@
         $viewerIsBuyer = auth()->id() === $order->buyer_id;
         $viewerIsSeller = $order->orderItems->contains(fn ($item) => $item->product?->user_id === auth()->id());
         $viewerIsAdmin = auth()->user()->isAdmin();
+        $paymentMethodLabel = $order->payment?->methodLabel() ?? '-';
     @endphp
 
     <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -56,7 +57,14 @@
             <section class="rounded-xl border bg-white p-5">
                 <h2 class="font-bold">Rincian pembayaran</h2>
                 <dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between"><dt>Subtotal</dt><dd>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Ongkir</dt><dd>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Biaya layanan</dt><dd>Rp {{ number_format($order->service_fee, 0, ',', '.') }}</dd></div><div class="flex justify-between border-t pt-2 text-base font-bold"><dt>Total</dt><dd>Rp {{ number_format($order->total, 0, ',', '.') }}</dd></div></dl>
-                <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'Dibayar saat COD' : 'Status pembayaran: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
+                <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'Dibayar saat COD' : 'Metode: '.$paymentMethodLabel.' · Status: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
+                @if ($order->payment?->status?->value === 'paid' && ! $order->payment?->released_at)
+                    <p class="mt-2 rounded bg-blue-50 p-2 text-sm text-blue-800">Dana ditahan aman oleh rekber lokal sampai pembeli mengonfirmasi pesanan selesai.</p>
+                @elseif ($order->payment?->released_at)
+                    <p class="mt-2 rounded bg-green-50 p-2 text-sm text-green-800">Transaksi selesai dan dana telah dilepas kepada penjual.</p>
+                @elseif ($order->payment?->status?->value === 'refunded')
+                    <p class="mt-2 rounded bg-amber-50 p-2 text-sm text-amber-800">Dana telah dikembalikan melalui alur pengembalian lokal.</p>
+                @endif
                 @if ($order->payment?->failure_reason)
                     <p class="mt-2 rounded bg-red-50 p-2 text-sm text-red-700">Alasan pembayaran ditolak: {{ $order->payment->failure_reason }}</p>
                 @endif
@@ -64,11 +72,11 @@
 
             @if (app()->environment(['local', 'testing']) && $viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
                 <section class="rounded-xl border bg-white p-5">
-                    <h2 class="font-bold">Pembayaran demo</h2>
-                    <p class="mt-2 text-sm text-gray-600">Untuk demo lokal, pembayaran akan langsung diverifikasi otomatis setelah tombol ditekan.</p>
+                    <h2 class="font-bold">SecondPay · Rekber lokal</h2>
+                    <p class="mt-2 text-sm text-gray-600">{{ $paymentMethodLabel }} diproses otomatis untuk presentasi. Dana akan ditahan sampai pesanan selesai atau pengembalian disetujui.</p>
                     <form method="POST" action="{{ route('orders.payment.simulate', $order) }}" class="mt-3">
                         @csrf
-                        <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Bayar sekarang (simulasi)</button>
+                        <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Bayar Rp {{ number_format($order->total, 0, ',', '.') }}</button>
                     </form>
                 </section>
             @endif
@@ -77,8 +85,20 @@
                 <form method="POST" action="{{ route('admin.orders.payment.confirm', $order) }}">@csrf<button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Konfirmasi pembayaran</button></form>
             @endif
 
-            @if ($viewerIsBuyer && in_array($order->status->value, ['pending_payment', 'cod_requested'], true))
-                <form method="POST" action="{{ route('orders.cancel', $order) }}">@csrf<button class="w-full rounded border border-red-300 px-4 py-2 font-medium text-red-700">Batalkan pesanan</button></form>
+            @if ($viewerIsBuyer && in_array($order->status->value, ['pending_payment', 'cod_requested', 'paid'], true))
+                <section class="rounded-xl border border-red-200 bg-white p-5">
+                    <h2 class="font-bold text-red-800">Batalkan pesanan</h2>
+                    <p class="mt-1 text-sm text-gray-600">Pesanan hanya bisa dibatalkan sebelum penjual mulai memprosesnya. Bila sudah dibayar, dana lokal dikembalikan otomatis.</p>
+                    <form method="POST" action="{{ route('orders.cancel', $order) }}" class="mt-3 space-y-3">@csrf
+                        <select name="reason" class="w-full rounded border border-red-200 px-3 py-2 text-sm" required><option value="">Pilih alasan pembatalan</option><option>Berubah pikiran</option><option>Alamat atau data penerima salah</option><option>Ingin mengganti metode pembayaran</option><option>Penjual tidak merespons</option><option>Lainnya</option></select>
+                        <textarea name="note" rows="2" class="w-full rounded border border-red-200 px-3 py-2 text-sm" placeholder="Catatan tambahan (opsional)"></textarea>
+                        <button class="w-full rounded border border-red-300 px-4 py-2 font-medium text-red-700 hover:bg-red-50">Batalkan pesanan</button>
+                    </form>
+                </section>
+            @endif
+
+            @if ($order->status->value === 'cancelled')
+                <section class="rounded-xl border border-slate-200 bg-white p-5 text-sm"><h2 class="font-bold">Pesanan dibatalkan</h2><p class="mt-2 text-slate-600">Alasan: {{ $order->cancellation_reason ?? '-' }}</p>@if($order->cancellation_note)<p class="mt-1 text-slate-600">Catatan: {{ $order->cancellation_note }}</p>@endif</section>
             @endif
 
             @if ($viewerIsSeller && $order->status->value === 'paid')
@@ -104,6 +124,20 @@
                     @csrf
                     <button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Barang sudah saya terima</button>
                 </form>
+            @endif
+            @if ($viewerIsBuyer && in_array($order->status->value, ['shipped', 'received'], true) && ! $order->refundRequest)
+                <section class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+                    <h2 class="font-bold text-amber-900">Ajukan pengembalian</h2>
+                    <p class="mt-1 text-sm text-amber-800">Laporkan masalah sebelum mengonfirmasi barang diterima. Dana tetap ditahan selama admin memeriksa pengajuan.</p>
+                    <form method="POST" action="{{ route('orders.refund-requests.store', $order) }}" class="mt-3 space-y-3">@csrf
+                        <select name="reason" class="w-full rounded border border-amber-200 px-3 py-2 text-sm" required><option value="">Pilih alasan</option><option>Barang tidak sesuai</option><option>Barang rusak</option><option>Barang tidak sampai</option><option>Lainnya</option></select>
+                        <textarea name="description" rows="3" class="w-full rounded border border-amber-200 px-3 py-2 text-sm" placeholder="Jelaskan masalah minimal 10 karakter" required></textarea>
+                        <button class="w-full rounded bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-700">Kirim pengajuan</button>
+                    </form>
+                </section>
+            @endif
+            @if ($order->refundRequest)
+                <section class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm"><h2 class="font-bold text-amber-900">Pengajuan pengembalian</h2><p class="mt-2 font-medium">{{ $order->refundRequest->reason }} · {{ str_replace('_', ' ', $order->refundRequest->status->value) }}</p><p class="mt-1 whitespace-pre-line text-amber-900">{{ $order->refundRequest->description }}</p>@if($order->refundRequest->resolution_note)<p class="mt-2 text-amber-800">Catatan admin: {{ $order->refundRequest->resolution_note }}</p>@endif</section>
             @endif
             @if ($viewerIsBuyer && $order->status->value === 'completed')
             @if ($order->review)

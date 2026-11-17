@@ -34,10 +34,10 @@ class MarketplaceCatalogSeederTest extends TestCase
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('products', ['id' => $legacyProduct->id, 'status' => 'hidden']);
-        $this->assertDatabaseCount('products', 11);
+        $this->assertDatabaseCount('products', 12);
 
         $this->seed(MarketplaceCatalogSeeder::class);
 
-        $this->assertDatabaseCount('products', 11);
+        $this->assertDatabaseCount('products', 12);
     }
 }

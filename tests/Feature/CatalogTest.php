@@ -83,6 +83,25 @@ class CatalogTest extends TestCase
             ->assertDontSee('Laptop A');
     }
 
+    public function test_navigation_category_slug_and_group_filters_products(): void
+    {
+        $tablet = Category::create(['name' => 'Tablet', 'slug' => 'tablet', 'is_active' => true]);
+        $this->makeProduct(['name' => 'Laptop Navigasi', 'category_id' => $this->laptop->id]);
+        $this->makeProduct(['name' => 'Tablet Navigasi', 'category_id' => $tablet->id]);
+        $this->makeProduct(['name' => 'Ponsel Navigasi', 'category_id' => $this->phone->id]);
+
+        $this->get(route('products.index', ['category_slug' => 'laptop']))
+            ->assertOk()
+            ->assertSee('Laptop Navigasi')
+            ->assertDontSee('Tablet Navigasi');
+
+        $this->get(route('products.index', ['category_group' => 'mobile']))
+            ->assertOk()
+            ->assertSee('Tablet Navigasi')
+            ->assertSee('Ponsel Navigasi')
+            ->assertDontSee('Laptop Navigasi');
+    }
+
     public function test_filter_by_price_range(): void
     {
         $this->makeProduct(['name' => 'Murah', 'price' => 500000]);

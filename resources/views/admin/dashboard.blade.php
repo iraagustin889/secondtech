@@ -26,6 +26,11 @@
             <p class="mt-1 text-3xl font-bold text-amber-600">{{ $pendingPayments }}</p>
             <p class="mt-2 text-sm text-blue-700">Buka antrean pembayaran →</p>
         </a>
+        <a href="{{ route('admin.refund-requests.index') }}" class="rounded-lg border bg-white p-5 shadow-sm transition hover:border-blue-400 hover:shadow">
+            <p class="text-sm text-gray-500">Sengketa & pengembalian</p>
+            <p class="mt-1 text-3xl font-bold text-rose-600">{{ $pendingRefunds }}</p>
+            <p class="mt-2 text-sm text-blue-700">Periksa pengajuan →</p>
+        </a>
         <div class="rounded-lg bg-white p-5 shadow-sm border">
             <p class="text-sm text-gray-500">Pesanan aktif</p>
             <p class="mt-1 text-3xl font-bold text-blue-600">{{ $activeOrders }}</p>

@@ -8,6 +8,7 @@ use App\Enums\ShippingStatus;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ServiceFeeConfiguration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -137,5 +138,37 @@ class CheckoutControllerTest extends TestCase
 
         Http::assertSent(fn (Request $request): bool => str_starts_with($request->url(), 'https://rajaongkir.komerce.id/api/v1/destination/domestic-destination')
             && $request['search'] === 'Bandung');
+    }
+
+    public function test_checkout_displays_and_stores_the_active_service_fee(): void
+    {
+        $buyer = User::factory()->create();
+        $seller = User::factory()->create();
+        $product = Product::factory()->for($seller, 'seller')->for(Category::factory())->create([
+            'price' => 1_000_000,
+            'stock' => 1,
+            'status' => 'active',
+        ]);
+        ServiceFeeConfiguration::create(['type' => 'percentage', 'value' => 2.5, 'is_active' => true]);
+
+        $this->actingAs($buyer)
+            ->get(route('checkout.create', $product))
+            ->assertOk()
+            ->assertSee('Rp 25.000')
+            ->assertSee('Rp 1.025.000');
+
+        $this->actingAs($buyer)->post(route('checkout.store', $product), [
+            'recipient_name' => 'Pembeli',
+            'recipient_phone' => '08123456789',
+            'recipient_address' => 'Jl. Contoh 1',
+            'recipient_location' => 'Bandung',
+            'shipping_method' => 'cod',
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'subtotal' => 1_000_000,
+            'service_fee' => 25_000,
+            'total' => 1_025_000,
+        ]);
     }
 }
