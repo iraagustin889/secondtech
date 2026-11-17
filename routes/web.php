@@ -43,6 +43,9 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+Route::post('/payments/midtrans/notification', [PaymentController::class, 'midtransNotification'])
+    ->name('payments.midtrans.notification');
+
 // Profil: semua user login (termasuk admin)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -72,6 +75,7 @@ Route::middleware(['auth', DenyAdmin::class])->group(function () {
     Route::post('/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/refund-requests', [RefundRequestController::class, 'store'])->name('orders.refund-requests.store');
     Route::post('/orders/{order}/payment', [PaymentController::class, 'submit'])->name('orders.payment.submit');
+    Route::post('/orders/{order}/payment/gateway', [PaymentController::class, 'startGateway'])->name('orders.payment.gateway');
     Route::post('/orders/{order}/payment/simulate', [PaymentController::class, 'simulate'])->name('orders.payment.simulate');
     Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
     Route::get('/orders/{order}/tracking', [OrderHistoryController::class, 'tracking'])->name('orders.tracking');

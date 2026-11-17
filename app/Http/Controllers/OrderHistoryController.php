@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ShippingMethod;
 use App\Enums\ShippingStatus;
+use App\Exceptions\PaymentGatewayException;
 use App\Exceptions\ShippingQuoteUnavailableException;
 use App\Http\Requests\CancelOrderRequest;
 use App\Http\Requests\ConfirmCodHandoverRequest;
@@ -13,6 +14,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Shipping;
+use App\Services\MidtransGateway;
 use App\Services\ShippingQuoteService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -39,22 +41,38 @@ class OrderHistoryController extends Controller
         return view('orders.index', compact('orders', 'selectedStatus', 'statuses'));
     }
 
-    public function show(Order $order): View
+    public function show(Order $order, MidtransGateway $midtrans): View
     {
         Gate::authorize('view', $order);
 
         return view('orders.show', [
             'order' => $order->load(['buyer', 'orderItems.product.seller', 'payment.verifier', 'shipping', 'refundRequest.resolver']),
+            'midtransConfigured' => $midtrans->isConfigured(),
         ]);
     }
 
-    public function cancel(CancelOrderRequest $request, Order $order): RedirectResponse
+    public function cancel(CancelOrderRequest $request, Order $order, MidtransGateway $midtrans): RedirectResponse
     {
         Gate::authorize('cancel', $order);
 
         $data = $request->validated();
+        $payment = $order->payment;
+        $refundResponse = null;
 
-        $wasPaid = DB::transaction(function () use ($order, $data): bool {
+        if ($payment?->status === PaymentStatus::Paid && $payment->gateway === 'midtrans') {
+            try {
+                $refundResponse = $midtrans->refund(
+                    $payment,
+                    (int) $order->total,
+                    'Pembatalan pesanan: '.$data['reason'],
+                    'ST-CANCEL-'.$order->id,
+                );
+            } catch (PaymentGatewayException $exception) {
+                return back()->with('error', $exception->getMessage());
+            }
+        }
+
+        $wasPaid = DB::transaction(function () use ($order, $data, $refundResponse): bool {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
 
             if (! in_array($lockedOrder->status, [OrderStatus::PendingPayment, OrderStatus::CodRequested, OrderStatus::Paid], true)) {
@@ -77,6 +95,9 @@ class OrderHistoryController extends Controller
                     'failure_reason' => 'Dibatalkan pembeli: '.$data['reason'],
                     'cancelled_at' => now(),
                     'refunded_at' => $wasPaid ? now() : null,
+                    'gateway_response' => $refundResponse
+                        ? [...($payment->gateway_response ?? []), 'refund' => $refundResponse]
+                        : $payment->gateway_response,
                 ]);
             }
             Shipping::query()->where('order_id', $lockedOrder->id)->update(['status' => ShippingStatus::Cancelled]);
@@ -98,7 +119,7 @@ class OrderHistoryController extends Controller
         return to_route('orders.show', $order)->with(
             'success',
             $wasPaid
-                ? 'Pesanan dibatalkan, dana lokal dikembalikan, dan stok diperbarui.'
+                ? 'Pesanan dibatalkan, dana dikembalikan, dan stok diperbarui.'
                 : 'Pesanan dibatalkan dan stok diperbarui.',
         );
     }

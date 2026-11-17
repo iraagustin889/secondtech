@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\RefundStatus;
 use App\Enums\ShippingStatus;
+use App\Exceptions\PaymentGatewayException;
 use App\Http\Requests\ResolveRefundRequest;
 use App\Http\Requests\StoreRefundRequest;
 use App\Models\AdminLog;
@@ -14,6 +15,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\RefundRequest;
 use App\Models\Shipping;
+use App\Services\MidtransGateway;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -62,9 +64,13 @@ class RefundRequestController extends Controller
         return view('admin.refund-requests.index', compact('refundRequests'));
     }
 
-    public function approve(ResolveRefundRequest $request, RefundRequest $refundRequest): RedirectResponse
+    public function approve(ResolveRefundRequest $request, RefundRequest $refundRequest, MidtransGateway $midtrans): RedirectResponse
     {
-        $this->resolve($refundRequest, RefundStatus::Approved, $request->validated('resolution_note'));
+        try {
+            $this->resolve($refundRequest, RefundStatus::Approved, $request->validated('resolution_note'), $midtrans);
+        } catch (PaymentGatewayException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
 
         return to_route('admin.refund-requests.index')->with('status', 'Pengembalian disetujui. Dana dan stok telah diperbarui.');
     }
@@ -76,9 +82,29 @@ class RefundRequestController extends Controller
         return to_route('admin.refund-requests.index')->with('status', 'Pengajuan pengembalian ditolak dan pesanan dilanjutkan.');
     }
 
-    private function resolve(RefundRequest $refundRequest, RefundStatus $resolution, ?string $note): void
+    private function resolve(RefundRequest $refundRequest, RefundStatus $resolution, ?string $note, ?MidtransGateway $midtrans = null): void
     {
-        DB::transaction(function () use ($refundRequest, $resolution, $note): void {
+        $refundResponse = null;
+
+        if ($resolution === RefundStatus::Approved) {
+            $refundRequest->loadMissing('order.payment');
+            $payment = $refundRequest->order?->payment;
+
+            if ($refundRequest->status !== RefundStatus::Requested || $refundRequest->order?->status !== OrderStatus::Disputed) {
+                abort(422, 'Pengajuan ini sudah diproses atau status pesanan tidak sesuai.');
+            }
+
+            if ($payment?->gateway === 'midtrans') {
+                $refundResponse = $midtrans?->refund(
+                    $payment,
+                    (int) $refundRequest->order->total,
+                    'Pengembalian pesanan: '.$refundRequest->reason,
+                    'ST-REFUND-'.$refundRequest->id,
+                );
+            }
+        }
+
+        DB::transaction(function () use ($refundRequest, $resolution, $note, $refundResponse): void {
             $lockedRefund = RefundRequest::query()->lockForUpdate()->findOrFail($refundRequest->id);
 
             if ($lockedRefund->status !== RefundStatus::Requested) {
@@ -117,6 +143,9 @@ class RefundRequestController extends Controller
                 'status' => PaymentStatus::Refunded,
                 'refunded_at' => now(),
                 'failure_reason' => 'Pengembalian disetujui: '.$lockedRefund->reason,
+                'gateway_response' => $refundResponse
+                    ? [...($payment->gateway_response ?? []), 'refund' => $refundResponse]
+                    : $payment->gateway_response,
             ]);
             $order->update(['status' => OrderStatus::Refunded]);
             Shipping::query()->where('order_id', $order->id)->update(['status' => ShippingStatus::Returned]);

@@ -16,6 +16,12 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'method',
+        'gateway',
+        'gateway_order_id',
+        'gateway_token',
+        'gateway_redirect_url',
+        'gateway_transaction_id',
+        'gateway_response',
         'status',
         'reference',
         'submitted_at',
@@ -31,6 +37,7 @@ class Payment extends Model
     {
         return [
             'status' => PaymentStatus::class,
+            'gateway_response' => 'array',
             'submitted_at' => 'datetime',
             'paid_at' => 'datetime',
             'released_at' => 'datetime',

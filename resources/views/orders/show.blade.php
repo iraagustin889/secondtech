@@ -70,7 +70,16 @@
                 @endif
             </section>
 
-            @if (app()->environment(['local', 'testing']) && $viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
+            @if ($viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod' && $midtransConfigured)
+                <section class="rounded-xl border border-blue-200 bg-white p-5">
+                    <h2 class="font-bold">Bayar aman dengan Midtrans</h2>
+                    <p class="mt-2 text-sm text-gray-600">Lanjutkan ke halaman Midtrans untuk {{ $paymentMethodLabel }}. Status pembayaran hanya berubah setelah webhook Midtrans tervalidasi.</p>
+                    <form method="POST" action="{{ route('orders.payment.gateway', $order) }}" class="mt-3">
+                        @csrf
+                        <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">{{ $order->payment?->gateway_redirect_url ? 'Lanjutkan pembayaran' : 'Bayar dengan Midtrans' }}</button>
+                    </form>
+                </section>
+            @elseif (app()->environment(['local', 'testing']) && $viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
                 <section class="rounded-xl border bg-white p-5">
                     <h2 class="font-bold">SecondPay · Rekber lokal</h2>
                     <p class="mt-2 text-sm text-gray-600">{{ $paymentMethodLabel }} diproses otomatis untuk presentasi. Dana akan ditahan sampai pesanan selesai atau pengembalian disetujui.</p>
