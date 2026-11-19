@@ -1,25 +1,28 @@
 <?php
 
-use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceFeeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderHistoryController;
+use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SellerNotificationController;
+use App\Http\Controllers\SellerProfileController;
 use App\Http\Middleware\DenyAdmin;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 
@@ -28,6 +31,7 @@ Route::get('/products', [CatalogController::class, 'index'])->name('products.ind
 
 // Detail produk (Issue #5), publik
 Route::get('/products/{product}', [CatalogController::class, 'show'])->name('products.show');
+Route::get('/sellers/{seller}', [SellerProfileController::class, 'show'])->name('sellers.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
@@ -48,6 +52,12 @@ Route::middleware('auth')->group(function () {
 
 // Transaksi pembeli: admin dilarang (hanya monitoring)
 Route::middleware(['auth', DenyAdmin::class])->group(function () {
+    Route::get('/chats', [ChatController::class, 'index'])->name('chats.index');
+    Route::post('/products/{product}/chat', [ChatController::class, 'startFromProduct'])->name('chats.start.product');
+    Route::post('/orders/{order}/chat', [ChatController::class, 'startFromOrder'])->name('chats.start.order');
+    Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
+    Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])->name('chats.messages.store');
+
     Route::get('/products/{product}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/products/{product}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
@@ -114,6 +124,7 @@ Route::middleware(['auth', DenyAdmin::class])
         Route::patch('/products/{product}/toggle', [ProductController::class, 'toggle'])->name('products.toggle');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::get('/orders', [SellerOrderController::class, 'index'])->name('orders.index');
+        Route::get('/notifications', [SellerNotificationController::class, 'index'])->name('notifications.index');
         Route::post('/orders/{order}/process', [SellerOrderController::class, 'process'])->name('orders.process');
         Route::post('/orders/{order}/shipment', [SellerOrderController::class, 'ship'])->name('orders.ship');
         Route::post('/orders/{order}/cod-agreement', [SellerOrderController::class, 'agreeCod'])->name('orders.cod.agree');

@@ -52,6 +52,11 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
     public function scopePurchasable(Builder $query): Builder
     {
         return $query

@@ -2,7 +2,6 @@
 
 namespace App\Actions;
 
-use App\Models\ServiceFeeConfiguration;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ShippingMethod;
@@ -10,13 +9,15 @@ use App\Enums\ShippingStatus;
 use App\Exceptions\OrderUnavailableException;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ServiceFeeConfiguration;
 use App\Models\User;
+use App\Notifications\NewOrderNotification;
 use Illuminate\Support\Facades\DB;
 
 class CreateOrderAction
 {
     /**
-     * @param  array{recipient_name: string, recipient_phone: string, recipient_address: string, recipient_location: string, shipping_method: string}  $checkout
+     * @param  array{recipient_name: string, recipient_phone: string, recipient_address: string, recipient_location: string, shipping_method: string, quantity: int}  $checkout
      * @param  array{courier?: string, service?: string, cost?: int, estimate?: string, origin_id?: int, destination_id?: int, destination_name?: string}  $shippingQuote
      */
     public function handle(User $buyer, Product $product, array $checkout, array $shippingQuote = []): Order
@@ -30,6 +31,16 @@ class CreateOrderAction
                 throw new OrderUnavailableException;
             }
 
+            if ($lockedProduct->user_id === $buyer->id) {
+                throw new OrderUnavailableException('Anda tidak dapat membeli produk milik sendiri.');
+            }
+
+            $quantity = (int) $checkout['quantity'];
+
+            if ($quantity > $lockedProduct->stock) {
+                throw new OrderUnavailableException('Jumlah pesanan melebihi stok yang tersedia.');
+            }
+
             $shippingMethod = ShippingMethod::from($checkout['shipping_method']);
             $shippingCost = $shippingMethod === ShippingMethod::Expedition
                 ? (int) ($shippingQuote['cost'] ?? 0)
@@ -39,7 +50,7 @@ class CreateOrderAction
                 throw new OrderUnavailableException('Pilihan ongkos kirim tidak lagi tersedia. Silakan cek ulang ongkir.');
             }
 
-            $subtotal = (int) $lockedProduct->price;
+            $subtotal = (int) $lockedProduct->price * $quantity;
             $serviceFee = ServiceFeeConfiguration::calculate((int) $subtotal);
 
             $order = Order::create([
@@ -64,8 +75,8 @@ class CreateOrderAction
 
             $order->orderItems()->create([
                 'product_id' => $lockedProduct->id,
-                'price_snapshot' => $subtotal,
-                'qty' => 1,
+                'price_snapshot' => $lockedProduct->price,
+                'qty' => $quantity,
             ]);
 
             $order->payment()->create([
@@ -83,17 +94,20 @@ class CreateOrderAction
                 'origin_id' => $shippingQuote['origin_id'] ?? $lockedProduct->shipping_origin_id,
                 'destination_id' => $shippingQuote['destination_id'] ?? null,
                 'destination_name' => $shippingQuote['destination_name'] ?? null,
-                'weight' => $lockedProduct->weight,
+                'weight' => $lockedProduct->weight * $quantity,
                 'cost' => $shippingCost,
                 'estimated_delivery' => $shippingQuote['estimate'] ?? null,
             ]);
 
             $lockedProduct->update([
-                'stock' => $lockedProduct->stock - 1,
-                'status' => 'reserved',
+                'stock' => $lockedProduct->stock - $quantity,
+                'status' => $lockedProduct->stock === $quantity ? 'reserved' : 'active',
             ]);
 
-            return $order->fresh(['orderItems.product', 'payment', 'shipping']);
+            $completedOrder = $order->fresh(['buyer', 'orderItems.product', 'payment', 'shipping']);
+            User::query()->findOrFail($lockedProduct->user_id)->notify(new NewOrderNotification($completedOrder));
+
+            return $completedOrder;
         }, attempts: 3);
     }
 }

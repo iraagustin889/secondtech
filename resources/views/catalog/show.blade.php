@@ -56,6 +56,10 @@
                            class="inline-flex px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                             Beli sekarang
                         </a>
+                        <form method="POST" action="{{ route('chats.start.product', $product) }}" class="mt-3 inline-block">
+                            @csrf
+                            <button type="submit" class="inline-flex rounded border border-blue-600 px-5 py-2 font-medium text-blue-700 hover:bg-blue-50">Chat penjual</button>
+                        </form>
                     @else
                         <a href="{{ route('login') }}" class="inline-flex px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                             Login untuk membeli
@@ -87,7 +91,7 @@
         {{-- Info penjual --}}
         <div class="bg-white border rounded p-4 h-fit">
             <h2 class="font-semibold mb-2">Penjual</h2>
-            <p class="font-medium">{{ $product->seller->name }}</p>
+            <a href="{{ route('sellers.show', $product->seller) }}" class="font-medium text-blue-700 hover:underline">{{ $product->seller->name }}</a>
             @if ($product->seller->location)
                 <p class="text-sm text-gray-500">{{ $product->seller->location }}</p>
             @endif
@@ -95,6 +99,7 @@
                         @if ($sellerReviewCount > 0)
                 <p class="text-xs text-yellow-600 mt-1">★ {{ $sellerRating }} ({{ $sellerReviewCount }} ulasan penjual)</p>
             @endif
+            <a href="{{ route('sellers.show', $product->seller) }}" class="mt-3 inline-block text-sm text-blue-700 underline">Lihat profil penjual</a>
         </div>
     </div>
 

@@ -69,10 +69,10 @@ class OrderHistoryController extends Controller
             foreach ($lockedOrder->orderItems as $item) {
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
 
-                if ($product?->status === 'reserved') {
+                if ($product !== null) {
                     $product->update([
                         'stock' => $product->stock + $item->qty,
-                        'status' => 'active',
+                        'status' => $product->status === 'hidden' ? 'hidden' : 'active',
                     ]);
                 }
             }

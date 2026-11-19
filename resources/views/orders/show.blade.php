@@ -50,6 +50,13 @@
                 <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'Dibayar saat COD' : 'Status pembayaran: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
             </section>
 
+            @if (($viewerIsBuyer || $viewerIsSeller) && ! $viewerIsAdmin)
+                <form method="POST" action="{{ route('chats.start.order', $order) }}">
+                    @csrf
+                    <button class="w-full rounded border border-blue-600 px-4 py-2 font-medium text-blue-700 hover:bg-blue-50">Chat {{ $viewerIsBuyer ? 'penjual' : 'pembeli' }}</button>
+                </form>
+            @endif
+
             @if ($viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
                 <section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Kirim referensi pembayaran</h2><form method="POST" action="{{ route('orders.payment.submit', $order) }}" class="mt-3 space-y-3">@csrf<input name="reference" class="w-full rounded border px-3 py-2" placeholder="Nomor referensi transfer" required><button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Kirim</button></form></section>
             @endif

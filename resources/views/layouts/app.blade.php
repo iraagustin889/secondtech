@@ -18,10 +18,16 @@
                     <a href="{{ route('admin.dashboard') }}" class="hover:underline">Admin</a>
                @else
                     <a href="{{ route('orders.index') }}" class="hover:underline">Pembelian</a>
+                    <a href="{{ route('chats.index') }}" class="hover:underline">Pesan</a>
                     <a href="{{ route('seller.products.index') }}" class="hover:underline">
                        Produk Saya
                    </a>
                    <a href="{{ route('seller.orders.index') }}" class="hover:underline">Penjualan</a>
+                   <a href="{{ route('seller.notifications.index') }}" class="relative hover:underline">Notifikasi
+                       @if (auth()->user()->unreadNotifications()->count() > 0)
+                           <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">{{ auth()->user()->unreadNotifications()->count() }}</span>
+                       @endif
+                   </a>
              @endif
                    <a href="{{ route('profile.edit') }}" class="hover:underline">Halo, {{ auth()->user()->name }}</a>
                    <form method="POST" action="{{ route('logout') }}">

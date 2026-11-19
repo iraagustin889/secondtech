@@ -8,7 +8,7 @@
             <p class="text-sm text-gray-500">Produk yang dibeli</p>
             <h1 class="mt-1 text-xl font-bold">{{ $product->name }}</h1>
             <p class="mt-2 text-lg font-bold text-blue-700">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-            <p class="mt-3 text-sm text-gray-600">Berat {{ number_format($product->weight) }} gram · {{ $product->location }}</p>
+            <p class="mt-3 text-sm text-gray-600">Stok tersedia {{ $product->stock }} · Berat {{ number_format($product->weight) }} gram/unit · {{ $product->location }}</p>
         </aside>
 
         <section class="rounded-xl border bg-white p-6 lg:col-span-2">
@@ -23,6 +23,13 @@
 
             <form id="checkout-form" method="POST" action="{{ route('checkout.store', $product) }}" class="mt-6 space-y-4">
                 @csrf
+                <div>
+                    <label for="quantity" class="mb-1 block text-sm font-medium">Jumlah pesanan</label>
+                    <div class="flex items-center gap-3">
+                        <input id="quantity" type="number" name="quantity" min="1" max="{{ $product->stock }}" value="{{ old('quantity', $quantity) }}" class="w-28 rounded border px-3 py-2" required>
+                        <span class="text-sm text-gray-600">Maksimal {{ $product->stock }} unit. Ongkir dihitung sesuai jumlah dan berat total.</span>
+                    </div>
+                </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div><label class="mb-1 block text-sm font-medium">Nama penerima</label><input name="recipient_name" value="{{ $recipient['recipient_name'] }}" class="w-full rounded border px-3 py-2" required></div>
                     <div><label class="mb-1 block text-sm font-medium">Telepon penerima</label><input name="recipient_phone" value="{{ $recipient['recipient_phone'] }}" class="w-full rounded border px-3 py-2" required></div>
