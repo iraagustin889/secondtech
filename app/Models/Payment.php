@@ -16,10 +16,19 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'method',
+        'gateway',
+        'gateway_order_id',
+        'gateway_token',
+        'gateway_redirect_url',
+        'gateway_transaction_id',
+        'gateway_response',
         'status',
         'reference',
         'submitted_at',
         'paid_at',
+        'released_at',
+        'cancelled_at',
+        'refunded_at',
         'verified_by',
         'failure_reason',
     ];
@@ -28,8 +37,12 @@ class Payment extends Model
     {
         return [
             'status' => PaymentStatus::class,
+            'gateway_response' => 'array',
             'submitted_at' => 'datetime',
             'paid_at' => 'datetime',
+            'released_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -41,5 +54,16 @@ class Payment extends Model
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function methodLabel(): string
+    {
+        return match ($this->method) {
+            'bank_transfer', 'transfer_bank' => 'Virtual Account',
+            'qris' => 'QRIS',
+            'e_wallet' => 'E-Wallet',
+            'cod' => 'COD',
+            default => str($this->method)->replace('_', ' ')->title()->toString(),
+        };
     }
 }

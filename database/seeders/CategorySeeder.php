@@ -19,6 +19,7 @@ class CategorySeeder extends Seeder
             'Konsol Game',
             'Audio & Headphone',
             'Aksesoris',
+            'Komponen & GPU',
             'Lainnya',
         ];
 

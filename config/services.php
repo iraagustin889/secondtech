@@ -42,4 +42,10 @@ return [
         'default_origin_id' => env('RAJAONGKIR_DEFAULT_ORIGIN_ID'),
     ],
 
+    'midtrans' => [
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+    ],
+
 ];

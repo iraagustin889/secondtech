@@ -23,6 +23,7 @@ class MessageFactory extends Factory
             'conversation_id' => Conversation::factory(),
             'sender_id' => User::factory(),
             'body' => fake()->sentence(),
+            'read_at' => null,
         ];
     }
 }

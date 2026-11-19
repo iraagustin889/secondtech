@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
+        User::updateOrCreate(['email' => 'admin@secondtech.test'], [
             'name' => 'Admin',
             'email' => 'admin@secondtech.test',
             'password' => Hash::make('password'),
@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        User::create([
-            'name' => 'Penjual Demo',
+        User::updateOrCreate(['email' => 'seller@secondtech.test'], [
+            'name' => 'SecondTech Banyuwangi',
             'email' => 'seller@secondtech.test',
             'password' => Hash::make('password'),
             'role' => 'seller',
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        User::create([
+        User::updateOrCreate(['email' => 'buyer@secondtech.test'], [
             'name' => 'Pembeli Demo',
             'email' => 'buyer@secondtech.test',
             'password' => Hash::make('password'),
@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        User::create([
+        User::updateOrCreate(['email' => 'admin@gmail.com'], [
             'name' => 'Admin Dua',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
@@ -44,10 +44,13 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-               // Seeder kategori harus jalan sebelum seeder order (produk butuh kategori)
+        // Kategori harus jalan sebelum katalog agar setiap produk memiliki kategori yang benar.
         $this->call([
             CategorySeeder::class,
-            OrderSeeder::class,
+            ServiceFeeSeeder::class,
+            MarketplaceCatalogSeeder::class,
+            ConversationSeeder::class,
+            MessageSeeder::class,
         ]);
     }
 }

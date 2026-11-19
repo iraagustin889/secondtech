@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMessageRequest;
 use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,27 +16,25 @@ class ChatController extends Controller
 {
     public function index(Request $request): View
     {
+        Gate::authorize('viewAny', Conversation::class);
+
         $conversations = Conversation::query()
             ->where(fn ($query) => $query
                 ->where('buyer_id', $request->user()->id)
                 ->orWhere('seller_id', $request->user()->id))
             ->with(['buyer', 'seller', 'product', 'latestMessage.sender'])
             ->latest()
-            ->paginate(20);
+            ->paginate(15);
 
         return view('chats.index', compact('conversations'));
     }
 
     public function startFromProduct(Request $request, Product $product): RedirectResponse
     {
-        abort_unless($product->isPurchasable(), 404);
-        abort_if($product->user_id === $request->user()->id, 403, 'Anda tidak dapat mengirim pesan ke produk milik sendiri.');
+        abort_if($product->user_id === $request->user()->id, 422, 'Anda tidak dapat mengirim pesan ke produk sendiri.');
+        abort_unless($product->status === 'active', 404);
 
-        $conversation = Conversation::query()->firstOrCreate([
-            'buyer_id' => $request->user()->id,
-            'seller_id' => $product->user_id,
-            'product_id' => $product->id,
-        ]);
+        $conversation = $this->conversationFor($request->user(), $product);
 
         return to_route('chats.show', $conversation);
     }
@@ -43,52 +43,58 @@ class ChatController extends Controller
     {
         Gate::authorize('view', $order);
 
-        $product = $order->orderItems()->with('product')->firstOrFail()->product;
-        abort_if($product === null, 404);
+        $item = $order->orderItems()
+            ->with('product')
+            ->when(
+                $order->buyer_id !== $request->user()->id,
+                fn ($query) => $query->whereHas('product', fn ($productQuery) => $productQuery->where('user_id', $request->user()->id)),
+            )
+            ->firstOrFail();
+        $product = $item->product;
+        abort_unless($product instanceof Product, 404);
 
-        $conversation = Conversation::query()->firstOrCreate([
+        $conversation = Conversation::firstOrCreate([
             'buyer_id' => $order->buyer_id,
             'seller_id' => $product->user_id,
             'product_id' => $product->id,
-        ], [
-            'order_id' => $order->id,
         ]);
-
-        if ($conversation->order_id === null) {
-            $conversation->update(['order_id' => $order->id]);
-        }
 
         return to_route('chats.show', $conversation);
     }
 
     public function show(Request $request, Conversation $conversation): View
     {
-        $this->authorizeParticipant($request, $conversation);
+        Gate::authorize('view', $conversation);
+
+        $conversation->messages()
+            ->where('sender_id', '!=', $request->user()->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
         $conversation->load(['buyer', 'seller', 'product', 'messages.sender']);
 
         return view('chats.show', compact('conversation'));
     }
 
-    public function store(Request $request, Conversation $conversation): RedirectResponse
+    public function store(StoreMessageRequest $request, Conversation $conversation): RedirectResponse
     {
-        $this->authorizeParticipant($request, $conversation);
-
-        $data = $request->validate([
-            'body' => ['required', 'string', 'max:1000'],
-        ]);
+        Gate::authorize('send', $conversation);
 
         $conversation->messages()->create([
             'sender_id' => $request->user()->id,
-            'body' => $data['body'],
+            'body' => $request->validated('body'),
         ]);
         $conversation->touch();
 
         return to_route('chats.show', $conversation);
     }
 
-    private function authorizeParticipant(Request $request, Conversation $conversation): void
+    private function conversationFor(User $buyer, Product $product): Conversation
     {
-        abort_unless(in_array($request->user()->id, [$conversation->buyer_id, $conversation->seller_id], true), 403);
+        return Conversation::firstOrCreate([
+            'buyer_id' => $buyer->id,
+            'seller_id' => $product->user_id,
+            'product_id' => $product->id,
+        ]);
     }
 }

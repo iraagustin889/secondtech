@@ -28,6 +28,8 @@ class Order extends Model
         'recipient_address',
         'recipient_location',
         'cancelled_at',
+        'cancellation_reason',
+        'cancellation_note',
     ];
 
     protected function casts(): array
@@ -68,8 +70,8 @@ class Order extends Model
         return $this->hasOne(Review::class);
     }
 
-    public function conversations(): HasMany
+    public function refundRequest(): HasOne
     {
-        return $this->hasMany(Conversation::class);
+        return $this->hasOne(RefundRequest::class);
     }
 }

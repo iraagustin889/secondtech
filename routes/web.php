@@ -16,7 +16,9 @@ use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RefundRequestController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\SellerNotificationController;
@@ -44,6 +46,9 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+Route::post('/payments/midtrans/notification', [PaymentController::class, 'midtransNotification'])
+    ->name('payments.midtrans.notification');
+
 // Profil: semua user login (termasuk admin)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -56,7 +61,9 @@ Route::middleware(['auth', DenyAdmin::class])->group(function () {
     Route::post('/products/{product}/chat', [ChatController::class, 'startFromProduct'])->name('chats.start.product');
     Route::post('/orders/{order}/chat', [ChatController::class, 'startFromOrder'])->name('chats.start.order');
     Route::get('/chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
-    Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])->name('chats.messages.store');
+    Route::post('/chats/{conversation}/messages', [ChatController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('chats.messages.store');
 
     Route::get('/products/{product}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/products/{product}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
@@ -69,7 +76,10 @@ Route::middleware(['auth', DenyAdmin::class])->group(function () {
     Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderHistoryController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/refund-requests', [RefundRequestController::class, 'store'])->name('orders.refund-requests.store');
     Route::post('/orders/{order}/payment', [PaymentController::class, 'submit'])->name('orders.payment.submit');
+    Route::post('/orders/{order}/payment/gateway', [PaymentController::class, 'startGateway'])->name('orders.payment.gateway');
+    Route::post('/orders/{order}/payment/simulate', [PaymentController::class, 'simulate'])->name('orders.payment.simulate');
     Route::post('/orders/{order}/cod-confirmation', [OrderHistoryController::class, 'confirmCod'])->name('orders.cod.confirm');
     Route::get('/orders/{order}/tracking', [OrderHistoryController::class, 'tracking'])->name('orders.tracking');
     Route::post('/orders/{order}/received', OrderReceiptController::class)->name('orders.received');
@@ -99,6 +109,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/service-fee', [ServiceFeeController::class, 'edit'])->name('service-fee.edit');
         Route::put('/service-fee', [ServiceFeeController::class, 'update'])->name('service-fee.update');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/refund-requests', [RefundRequestController::class, 'index'])->name('refund-requests.index');
 
         // Kategori
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -106,6 +118,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
 
         Route::post('/orders/{order}/payment/confirm', [PaymentController::class, 'confirm'])->name('orders.payment.confirm');
+        Route::post('/orders/{order}/payment/reject', [PaymentController::class, 'reject'])->name('orders.payment.reject');
+        Route::post('/refund-requests/{refundRequest}/approve', [RefundRequestController::class, 'approve'])->name('refund-requests.approve');
+        Route::post('/refund-requests/{refundRequest}/reject', [RefundRequestController::class, 'reject'])->name('refund-requests.reject');
     });
 
 // Halaman penjual: user login non-admin (admin hanya monitoring)
@@ -113,6 +128,7 @@ Route::middleware(['auth', DenyAdmin::class])
     ->prefix('seller')
     ->name('seller.')
     ->group(function () {
+        Route::get('/', [SellerDashboardController::class, 'index'])->name('dashboard');
         // Daftar produk milik penjual
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         // Form tambah produk

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['buyer_id', 'seller_id', 'product_id', 'order_id'])]
+#[Fillable(['buyer_id', 'seller_id', 'product_id'])]
 class Conversation extends Model
 {
     /** @use HasFactory<ConversationFactory> */
@@ -29,11 +29,6 @@ class Conversation extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
     }
 
     public function messages(): HasMany

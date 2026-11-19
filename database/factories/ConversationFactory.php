@@ -19,12 +19,10 @@ class ConversationFactory extends Factory
      */
     public function definition(): array
     {
-        $seller = User::factory();
-
         return [
             'buyer_id' => User::factory(),
-            'seller_id' => $seller,
-            'product_id' => Product::factory()->for($seller, 'seller'),
+            'seller_id' => User::factory(),
+            'product_id' => Product::factory(),
         ];
     }
 }

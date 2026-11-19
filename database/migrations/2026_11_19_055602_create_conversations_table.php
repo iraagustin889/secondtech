@@ -12,12 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('conversations')) {
-            if (! Schema::hasColumn('conversations', 'order_id')) {
-                Schema::table('conversations', function (Blueprint $table) {
-                    $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
-                });
-            }
-
             return;
         }
 
@@ -26,7 +20,6 @@ return new class extends Migration
             $table->foreignId('buyer_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('seller_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
 
             $table->unique(['buyer_id', 'seller_id', 'product_id']);

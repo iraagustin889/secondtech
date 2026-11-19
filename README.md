@@ -45,6 +45,38 @@ php artisan storage:link
 npm install
 ```
 
+### Ongkir resmi (RajaOngkir)
+
+Checkout memakai API RajaOngkir langsung, bukan tarif simulasi. Buat API key di RajaOngkir/Komerce lalu isi file `.env` lokal setiap anggota tim (jangan commit key):
+
+```dotenv
+RAJAONGKIR_API_KEY=isi_api_key_milik_tim
+RAJAONGKIR_DEFAULT_ORIGIN_ID=isi_id_lokasi_asal_penjual
+RAJAONGKIR_COURIERS=jne:jnt:sicepat:pos
+```
+
+Tanpa `RAJAONGKIR_API_KEY`, pencarian lokasi dan tarif ekspedisi memang tidak dapat dijalankan. COD tetap dapat digunakan.
+
+### Payment gateway (Midtrans Snap)
+
+Pembayaran ekspedisi terhubung ke Midtrans Snap. Gunakan key **Sandbox** untuk tugas/presentasi:
+
+```dotenv
+MIDTRANS_IS_PRODUCTION=false
+MIDTRANS_SERVER_KEY=SB-Mid-server-...
+MIDTRANS_CLIENT_KEY=SB-Mid-client-...
+```
+
+Di dashboard Midtrans, atur *Payment Notification URL* ke alamat publik HTTPS:
+
+```text
+https://domain-kamu.com/payments/midtrans/notification
+```
+
+Pada komputer lokal, gunakan tunnel HTTPS saat menguji webhook (misalnya ngrok). Jangan commit Server Key. Status pembayaran hanya diterima setelah signature webhook Midtrans tervalidasi.
+
+Pengembalian dana QRIS/e-wallet yang disetujui admin akan diteruskan ke Refund API Midtrans. Metode yang tidak didukung Midtrans untuk refund (misalnya sebagian virtual account) tetap memerlukan proses pengembalian manual oleh merchant.
+
 Untuk mengulang dari awal (data lama dihapus):
 
 ```bash

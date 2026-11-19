@@ -46,7 +46,7 @@ class CheckoutQuantityTest extends TestCase
         $this->assertDatabaseHas('shippings', ['order_id' => $order->id, 'weight' => 1200]);
         $this->assertDatabaseHas('notifications', ['notifiable_id' => $seller->id]);
 
-        $this->actingAs($buyer)->post(route('orders.cancel', $order))
+        $this->actingAs($buyer)->post(route('orders.cancel', $order), ['reason' => 'Berubah pikiran'])
             ->assertRedirectToRoute('orders.show', $order);
 
         $this->assertDatabaseHas('products', ['id' => $product->id, 'stock' => 5, 'status' => 'active']);

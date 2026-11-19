@@ -10,11 +10,20 @@ use Illuminate\Http\Request;
 
 class CatalogController extends Controller
 {
+    /** @var array<string, array<int, string>> */
+    private const NAVIGATION_GROUPS = [
+        'mobile' => ['smartphone', 'tablet'],
+        'components' => ['komponen-gpu', 'aksesoris'],
+        'media' => ['audio-headphone', 'kamera'],
+    ];
+
     public function index(Request $request): View
     {
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_slug' => ['nullable', 'string', 'max:100', 'exists:categories,slug'],
+            'category_group' => ['nullable', 'string', 'in:mobile,components,media'],
             'min_price' => ['nullable', 'integer', 'min:0'],
             'max_price' => ['nullable', 'integer', 'min:0'],
             'condition' => ['nullable', 'string', 'max:50'],
@@ -31,6 +40,12 @@ class CatalogController extends Controller
                 });
             })
             ->when(filled($filters['category'] ?? null), fn ($query) => $query->where('category_id', $filters['category']))
+            ->when(filled($filters['category_slug'] ?? null), function ($query) use ($filters): void {
+                $query->whereHas('category', fn ($category) => $category->where('slug', $filters['category_slug']));
+            })
+            ->when(filled($filters['category_group'] ?? null), function ($query) use ($filters): void {
+                $query->whereHas('category', fn ($category) => $category->whereIn('slug', self::NAVIGATION_GROUPS[$filters['category_group']]));
+            })
             ->when(filled($filters['min_price'] ?? null), fn ($query) => $query->where('price', '>=', $filters['min_price']))
             ->when(filled($filters['max_price'] ?? null), fn ($query) => $query->where('price', '<=', $filters['max_price']))
             ->when(filled($filters['condition'] ?? null), fn ($query) => $query->where('condition', $filters['condition']))

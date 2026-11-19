@@ -23,13 +23,20 @@ class OrderController extends Controller
 {
     public function index(Request $request): View
     {
+        $filters = $request->validate(['status' => ['nullable', 'string', 'max:50']]);
+        $selectedStatus = OrderStatus::tryFrom((string) ($filters['status'] ?? ''));
+
         $orders = Order::query()
             ->whereHas('orderItems.product', fn ($query) => $query->where('user_id', $request->user()->id))
             ->with(['buyer', 'orderItems.product', 'payment', 'shipping'])
+            ->when($selectedStatus, fn ($query, OrderStatus $status) => $query->where('status', $status))
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('seller.orders.index', compact('orders'));
+        $statuses = OrderStatus::cases();
+
+        return view('seller.orders.index', compact('orders', 'selectedStatus', 'statuses'));
     }
 
     public function process(Order $order): RedirectResponse
@@ -89,6 +96,7 @@ class OrderController extends Controller
                 Payment::query()->where('order_id', $lockedOrder->id)->update([
                     'status' => PaymentStatus::Paid,
                     'paid_at' => now(),
+                    'released_at' => now(),
                 ]);
                 $lockedOrder->update(['status' => OrderStatus::Completed]);
                 $productIds = $lockedOrder->orderItems()->pluck('product_id');

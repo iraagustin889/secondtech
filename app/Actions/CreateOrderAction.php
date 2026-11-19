@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class CreateOrderAction
 {
     /**
-     * @param  array{recipient_name: string, recipient_phone: string, recipient_address: string, recipient_location: string, shipping_method: string, quantity: int}  $checkout
+     * @param  array{recipient_name: string, recipient_phone: string, recipient_address: string, recipient_location: string, shipping_method: string, quantity: int, payment_method?: string}  $checkout
      * @param  array{courier?: string, service?: string, cost?: int, estimate?: string, origin_id?: int, destination_id?: int, destination_name?: string}  $shippingQuote
      */
     public function handle(User $buyer, Product $product, array $checkout, array $shippingQuote = []): Order
@@ -80,7 +80,9 @@ class CreateOrderAction
             ]);
 
             $order->payment()->create([
-                'method' => $shippingMethod === ShippingMethod::Cod ? 'cod' : 'transfer_bank',
+                'method' => $shippingMethod === ShippingMethod::Cod
+                    ? 'cod'
+                    : ($checkout['payment_method'] ?? 'bank_transfer'),
                 'status' => PaymentStatus::Pending,
             ]);
 
@@ -99,9 +101,11 @@ class CreateOrderAction
                 'estimated_delivery' => $shippingQuote['estimate'] ?? null,
             ]);
 
+            $newStock = $lockedProduct->stock - $quantity;
+
             $lockedProduct->update([
-                'stock' => $lockedProduct->stock - $quantity,
-                'status' => $lockedProduct->stock === $quantity ? 'reserved' : 'active',
+                'stock' => $newStock,
+                'status' => $newStock > 0 ? 'active' : 'reserved',
             ]);
 
             $completedOrder = $order->fresh(['buyer', 'orderItems.product', 'payment', 'shipping']);

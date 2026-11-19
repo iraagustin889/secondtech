@@ -18,8 +18,20 @@
                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
                      class="w-full max-h-96 object-cover">
             @else
-                <div class="w-full h-64 bg-gray-100 flex items-center justify-center text-sm text-gray-400">
-                    Tanpa foto
+                @php
+                    $categoryIcon = [
+                        'Laptop' => '💻',
+                        'Smartphone' => '📱',
+                        'Tablet' => '📱',
+                        'Kamera' => '📷',
+                        'Konsol Game' => '🎮',
+                        'Audio & Headphone' => '🎧',
+                        'Aksesoris' => '⌨️',
+                    ][$product->category?->name] ?? '📦';
+                @endphp
+                <div class="flex h-64 w-full flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 text-center">
+                    <span class="text-7xl" aria-hidden="true">{{ $categoryIcon }}</span>
+                    <span class="mt-3 text-sm font-medium text-gray-600">Foto produk belum ditambahkan penjual</span>
                 </div>
             @endif
         </div>
@@ -56,10 +68,6 @@
                            class="inline-flex px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                             Beli sekarang
                         </a>
-                        <form method="POST" action="{{ route('chats.start.product', $product) }}" class="mt-3 inline-block">
-                            @csrf
-                            <button type="submit" class="inline-flex rounded border border-blue-600 px-5 py-2 font-medium text-blue-700 hover:bg-blue-50">Chat penjual</button>
-                        </form>
                     @else
                         <a href="{{ route('login') }}" class="inline-flex px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                             Login untuk membeli
@@ -100,6 +108,16 @@
                 <p class="text-xs text-yellow-600 mt-1">★ {{ $sellerRating }} ({{ $sellerReviewCount }} ulasan penjual)</p>
             @endif
             <a href="{{ route('sellers.show', $product->seller) }}" class="mt-3 inline-block text-sm text-blue-700 underline">Lihat profil penjual</a>
+            @auth
+                @if (! $isOwner && ! auth()->user()->isAdmin() && $product->status === 'active')
+                    <form method="POST" action="{{ route('chats.start.product', $product) }}" class="mt-4">
+                        @csrf
+                        <button class="w-full rounded border border-blue-600 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Chat penjual</button>
+                    </form>
+                @endif
+            @else
+                <a href="{{ route('login') }}" class="mt-4 block text-sm text-blue-700 hover:underline">Login untuk chat dengan penjual</a>
+            @endauth
         </div>
     </div>
 
