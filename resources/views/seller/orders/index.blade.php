@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Pesanan Masuk')
+@section('title', 'Penjualan Saya')
 
 @section('content')
-    <div class="mb-6"><h1 class="text-2xl font-bold">Pesanan Masuk</h1><p class="mt-1 text-gray-600">Pesanan baru muncul di sini. Buka pesanan untuk menyetujui COD atau memproses pesanan yang sudah dibayar.</p></div>
+    <div class="mb-6"><h1 class="text-2xl font-bold">Penjualan Saya</h1><p class="mt-1 text-gray-600">Daftar pembelian dari pelanggan. Buka pesanan untuk menyetujui COD atau memproses pesanan yang sudah dibayar.</p></div>
 
     @if ($orders->isEmpty())
         <div class="rounded-xl border border-dashed bg-white p-10 text-center text-gray-600">Belum ada pesanan masuk.</div>

@@ -3,7 +3,7 @@
 @section('title', 'Notifikasi Penjual - SECONDTECH')
 
 @section('content')
-    <div class="mb-6"><h1 class="text-2xl font-bold">Notifikasi penjual</h1><p class="mt-1 text-gray-600">Pesanan baru akan muncul otomatis di sini dan pada menu Penjualan.</p></div>
+    <div class="mb-6"><h1 class="text-2xl font-bold">Notifikasi penjual</h1><p class="mt-1 text-gray-600">Pesanan baru akan muncul otomatis di sini dan pada menu Penjualan Saya.</p></div>
 
     @if ($notifications->isEmpty())
         <div class="rounded-xl border border-dashed bg-white p-10 text-center text-gray-600">Belum ada notifikasi pesanan.</div>

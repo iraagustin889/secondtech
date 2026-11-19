@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Riwayat Pembelian')
+@section('title', 'Pesanan Saya')
 
 @section('content')
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div><h1 class="text-2xl font-bold">Riwayat Pembelian</h1><p class="mt-1 text-gray-600">Lihat status pembayaran, pengiriman, dan pesanan Anda.</p></div>
+        <div><h1 class="text-2xl font-bold">Pesanan Saya</h1><p class="mt-1 text-gray-600">Daftar produk yang Anda beli, beserta status pembayaran dan pengirimannya.</p></div>
         <a href="{{ route('catalog.index') }}" class="rounded border px-4 py-2">Belanja lagi</a>
     </div>
 
