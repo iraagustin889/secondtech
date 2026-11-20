@@ -6,6 +6,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -25,6 +26,8 @@ class ProfileController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:100'],
             'seller_bio' => ['nullable', 'string', 'max:1000'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_avatar' => ['nullable', 'boolean'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'name.max' => 'Nama maksimal 100 karakter.',
@@ -35,6 +38,9 @@ class ProfileController extends Controller
             'address.max' => 'Alamat maksimal 255 karakter.',
             'location.max' => 'Lokasi maksimal 100 karakter.',
             'seller_bio.max' => 'Deskripsi toko maksimal 1000 karakter.',
+            'avatar.image' => 'File harus berupa gambar.',
+            'avatar.mimes' => 'Foto harus berformat JPG, PNG, atau WEBP.',
+            'avatar.max' => 'Ukuran foto maksimal 2 MB.',
         ]);
 
         // Diisi satu per satu (tanpa mass assignment) supaya tidak bergantung pada $fillable.
@@ -45,6 +51,17 @@ class ProfileController extends Controller
         $user->address = $data['address'] ?? null;
         $user->location = $data['location'] ?? null;
         $user->seller_bio = $data['seller_bio'] ?? null;
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = $request->file('avatar')->store('avatars', 'public');
+        } elseif ($request->boolean('remove_avatar') && $user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+            $user->avatar = null;
+        }
+
         $user->save();
 
         return redirect()->route('profile.edit')->with('success', 'Profil berhasil diperbarui.');

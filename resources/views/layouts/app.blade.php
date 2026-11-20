@@ -46,7 +46,11 @@
                         </a>
                     @endif
                     <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 rounded-xl p-2 hover:bg-slate-100">
-                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 font-bold text-[#1257d6]">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr(auth()->user()->name, 0, 1)) }}</span>
+                        @if (auth()->user()->avatarUrl())
+                            <img src="{{ auth()->user()->avatarUrl() }}" alt="Foto profil" class="h-9 w-9 rounded-full border border-slate-200 object-cover">
+                        @else
+                            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 font-bold text-[#1257d6]">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr(auth()->user()->name, 0, 1)) }}</span>
+                        @endif
                         <span class="hidden max-w-28 truncate font-medium text-slate-700 2xl:block">{{ auth()->user()->name }}</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" class="hidden xl:block">
