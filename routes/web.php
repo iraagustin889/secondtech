@@ -23,6 +23,7 @@ use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\SellerNotificationController;
 use App\Http\Controllers\SellerProfileController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Middleware\DenyAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'store']);
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store']);
+});
+
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'email'])->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'reset'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])->name('password.update');
 });
 
 Route::post('/logout', [LoginController::class, 'destroy'])

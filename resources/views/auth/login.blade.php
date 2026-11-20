@@ -23,7 +23,7 @@
         </div>
 
         <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="remember"> Ingat saya
+            <input type="checkbox" name="remember"> Ingat saya <a href="{{ route('password.request') }}" class="text-sm text-blue-600">Lupa password?</a>
         </label>
 
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
