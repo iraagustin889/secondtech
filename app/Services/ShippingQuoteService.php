@@ -48,7 +48,7 @@ class ShippingQuoteService
     /**
      * @return array<int, array{key: string, courier: string, service: string, cost: int, estimate: string, origin_id: int, destination_id: int, destination_name: string}>
      */
-    public function quotes(Product $product, int $destinationId, string $destinationName): array
+    public function quotes(Product $product, int $destinationId, string $destinationName, int $quantity = 1): array
     {
         $originId = $product->shipping_origin_id
             ?: config('services.rajaongkir.default_origin_id');
@@ -63,7 +63,7 @@ class ShippingQuoteService
                 ->post('calculate/domestic-cost', [
                     'origin' => $originId,
                     'destination' => $destinationId,
-                    'weight' => $product->weight,
+                    'weight' => $product->weight * $quantity,
                     'courier' => config('services.rajaongkir.couriers'),
                     'price' => 'lowest',
                 ]);

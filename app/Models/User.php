@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
     'phone',
     'address',
     'location',
+    'seller_bio',
     'is_active',
 ])]
 #[Hidden(['password', 'remember_token'])]

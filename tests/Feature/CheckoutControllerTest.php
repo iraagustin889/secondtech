@@ -38,6 +38,7 @@ class CheckoutControllerTest extends TestCase
             'recipient_phone' => '08123456789',
             'recipient_address' => 'Jl. Contoh 1',
             'recipient_location' => 'Bandung',
+            'quantity' => 1,
             'shipping_method' => 'cod',
         ]);
 
@@ -64,7 +65,7 @@ class CheckoutControllerTest extends TestCase
 
         $this->actingAs($buyer)
             ->post(route('checkout.store', $product), [
-                'recipient_name' => 'Pembeli', 'recipient_phone' => '08123456789', 'recipient_address' => 'Jl. Contoh 1', 'recipient_location' => 'Bandung', 'shipping_method' => 'cod',
+                'recipient_name' => 'Pembeli', 'recipient_phone' => '08123456789', 'recipient_address' => 'Jl. Contoh 1', 'recipient_location' => 'Bandung', 'quantity' => 1, 'shipping_method' => 'cod',
             ])
             ->assertRedirectToRoute('catalog.index')
             ->assertSessionHas('error');
@@ -101,6 +102,7 @@ class CheckoutControllerTest extends TestCase
             'recipient_phone' => '08123456789',
             'recipient_address' => 'Jl. Contoh 1',
             'recipient_location' => 'Bandung',
+            'quantity' => 1,
             'destination_id' => 4816,
             'destination_name' => 'Bandung, Jawa Barat',
         ]);
@@ -162,6 +164,7 @@ class CheckoutControllerTest extends TestCase
             'recipient_phone' => '08123456789',
             'recipient_address' => 'Jl. Contoh 1',
             'recipient_location' => 'Bandung',
+            'quantity' => 1,
             'shipping_method' => 'cod',
         ]);
 

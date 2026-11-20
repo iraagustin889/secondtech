@@ -9,18 +9,17 @@
 <body class="min-h-screen bg-[#f7f9fc] text-slate-800 antialiased">
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div class="mx-auto flex h-20 max-w-7xl items-center gap-5 px-4 lg:px-6">
-            <a href="{{ route('catalog.index') }}" class="flex shrink-0 items-center gap-2.5 text-base font-bold tracking-tight text-[#1257d6] sm:text-lg" aria-label="SECONDTECH beranda">
+            <a href="{{ route('catalog.index') }}" class="flex shrink-0 items-center gap-2.5 text-base font-bold tracking-tight text-[#1257d6] sm:text-lg" aria-label="SECONDTECH">
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1257d6] text-base text-white shadow-sm">⚡</span>
                 <span>SECONDTECH</span>
             </a>
 
             <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 xl:flex">
-                <a href="{{ route('catalog.index') }}" class="hover:text-[#1257d6]">Beranda</a>
-                <a href="{{ route('products.index') }}" class="hover:text-[#1257d6]">Marketplace</a>
-                <a href="{{ route('products.index') }}#catalog-filter" class="hover:text-[#1257d6]">Kategori</a>
                 @auth
                     @unless (auth()->user()->isAdmin())
                         <a href="{{ route('orders.index') }}" class="hover:text-[#1257d6]">Pesanan Saya</a>
+                        <a href="{{ route('seller.products.index') }}" class="hover:text-[#1257d6]">Produk Saya</a>
+                        <a href="{{ route('seller.orders.index') }}" class="hover:text-[#1257d6]">Penjualan Saya</a>
                     @endunless
                 @endauth
             </nav>
@@ -39,7 +38,12 @@
                         <a href="{{ route('admin.dashboard') }}" class="rounded-xl px-4 py-2.5 font-semibold text-[#1257d6] hover:bg-blue-50">Admin</a>
                     @else
                         <a href="{{ route('seller.products.create') }}" class="hidden rounded-xl bg-[#1257d6] px-4 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 sm:inline-flex">+ Jual Barang</a>
-                        <a href="{{ route('seller.dashboard') }}" class="hidden rounded-xl px-3 py-3 font-medium text-slate-600 hover:bg-slate-100 2xl:inline-flex">Dashboard</a>
+                        <a href="{{ route('seller.notifications.index') }}" class="relative hidden rounded-xl px-3 py-3 font-medium text-slate-600 hover:bg-slate-100 2xl:inline-flex">
+                            Notifikasi
+                            @if (auth()->user()->unreadNotifications()->count() > 0)
+                                <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">{{ auth()->user()->unreadNotifications()->count() }}</span>
+                            @endif
+                        </a>
                     @endif
                     <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 rounded-xl p-2 hover:bg-slate-100">
                         @if (auth()->user()->avatarUrl())
@@ -57,16 +61,6 @@
                     <a href="{{ route('login') }}" class="rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-100">Masuk</a>
                     <a href="{{ route('register') }}" class="rounded-xl bg-[#1257d6] px-4 py-3 font-semibold text-white shadow-sm hover:bg-blue-700">Daftar</a>
                 @endauth
-            </div>
-        </div>
-        <div class="border-t border-slate-100 bg-white">
-            <div class="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto px-4 py-3 text-xs font-medium text-slate-500 sm:text-sm lg:px-6">
-                <a href="{{ route('products.index', ['category_group' => 'mobile']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Smartphone & Tablet</a>
-                <a href="{{ route('products.index', ['category_slug' => 'laptop']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Laptop & Komputer</a>
-                <a href="{{ route('products.index', ['category_group' => 'components']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Komponen & GPU</a>
-                <a href="{{ route('products.index', ['category_group' => 'media']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Audio & Kamera</a>
-                <a href="{{ route('products.index', ['category_slug' => 'aksesoris']) }}" class="whitespace-nowrap hover:text-[#1257d6]">Aksesoris</a>
-                <span class="ml-auto hidden whitespace-nowrap text-emerald-600 lg:inline">✓ Transaksi aman & terlacak</span>
             </div>
         </div>
     </header>

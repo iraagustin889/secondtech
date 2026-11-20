@@ -21,6 +21,8 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
+use App\Http\Controllers\SellerNotificationController;
+use App\Http\Controllers\SellerProfileController;
 use App\Http\Middleware\DenyAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +33,7 @@ Route::get('/products', [CatalogController::class, 'index'])->name('products.ind
 
 // Detail produk (Issue #5), publik
 Route::get('/products/{product}', [CatalogController::class, 'show'])->name('products.show');
+Route::get('/sellers/{seller}', [SellerProfileController::class, 'show'])->name('sellers.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
@@ -137,6 +140,7 @@ Route::middleware(['auth', DenyAdmin::class])
         Route::patch('/products/{product}/toggle', [ProductController::class, 'toggle'])->name('products.toggle');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::get('/orders', [SellerOrderController::class, 'index'])->name('orders.index');
+        Route::get('/notifications', [SellerNotificationController::class, 'index'])->name('notifications.index');
         Route::post('/orders/{order}/process', [SellerOrderController::class, 'process'])->name('orders.process');
         Route::post('/orders/{order}/shipment', [SellerOrderController::class, 'ship'])->name('orders.ship');
         Route::post('/orders/{order}/cod-agreement', [SellerOrderController::class, 'agreeCod'])->name('orders.cod.agree');

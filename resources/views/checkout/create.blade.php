@@ -44,6 +44,7 @@
                         <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-3xl">{{ $product->category?->name === 'Laptop' ? '💻' : '📦' }}</div>
                         <div class="min-w-0 flex-1"><p class="font-semibold text-slate-800">{{ $product->name }}</p><p class="mt-1 text-xs text-slate-500">{{ $product->condition }} · {{ number_format($product->weight) }} gram · {{ $product->location }}</p><p class="mt-2 font-bold text-[#1257d6]">Rp {{ number_format($product->price, 0, ',', '.') }}</p></div>
                     </div>
+                    <div class="mt-4"><label for="quantity" class="mb-1.5 block text-xs font-semibold text-slate-700">Jumlah pesanan</label><div class="flex items-center gap-3"><input id="quantity" type="number" name="quantity" min="1" max="{{ $product->stock }}" value="{{ old('quantity', $quantity) }}" class="w-24 rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1257d6]" required><span class="text-xs text-slate-500">Maksimal {{ $product->stock }} unit. Ongkir mengikuti berat total.</span></div></div>
                 </section>
 
                 <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -90,7 +91,7 @@
 
             <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-28">
                 <h2 class="font-bold text-slate-900">Ringkasan Transaksi</h2>
-                <dl class="mt-5 space-y-3 text-sm"><div class="flex justify-between gap-4"><dt class="text-slate-500">Subtotal produk</dt><dd class="font-medium text-slate-800">Rp {{ number_format($product->price, 0, ',', '.') }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Ongkos kirim</dt><dd id="summary-shipping-cost" class="text-right text-xs text-slate-500">Pilih layanan</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Biaya layanan @if($serviceFeeLabel)<span class="text-[11px]">({{ $serviceFeeLabel }})</span>@endif</dt><dd class="font-medium text-slate-800">Rp {{ number_format($serviceFee, 0, ',', '.') }}</dd></div><div class="border-t border-slate-100 pt-4"><div class="flex justify-between gap-4"><dt class="font-bold text-slate-800">Total sementara</dt><dd id="summary-total" class="text-lg font-bold text-[#1257d6]">Rp {{ number_format((int) $product->price + $serviceFee, 0, ',', '.') }}</dd></div><p class="mt-1 text-[11px] text-slate-500">Total akhir diperbarui sesuai ongkir yang dipilih.</p></div></dl>
+                <dl class="mt-5 space-y-3 text-sm"><div class="flex justify-between gap-4"><dt class="text-slate-500">Subtotal produk ({{ $quantity }} unit)</dt><dd class="font-medium text-slate-800">Rp {{ number_format((int) $product->price * $quantity, 0, ',', '.') }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Ongkos kirim</dt><dd id="summary-shipping-cost" class="text-right text-xs text-slate-500">Pilih layanan</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Biaya layanan @if($serviceFeeLabel)<span class="text-[11px]">({{ $serviceFeeLabel }})</span>@endif</dt><dd class="font-medium text-slate-800">Rp {{ number_format($serviceFee, 0, ',', '.') }}</dd></div><div class="border-t border-slate-100 pt-4"><div class="flex justify-between gap-4"><dt class="font-bold text-slate-800">Total sementara</dt><dd id="summary-total" class="text-lg font-bold text-[#1257d6]">Rp {{ number_format((int) $product->price * $quantity + $serviceFee, 0, ',', '.') }}</dd></div><p class="mt-1 text-[11px] text-slate-500">Total akhir diperbarui sesuai ongkir yang dipilih.</p></div></dl>
                 <button formaction="{{ route('checkout.quote', $product) }}" class="mt-6 w-full rounded-lg border border-[#1257d6] px-4 py-2.5 text-sm font-semibold text-[#1257d6] hover:bg-blue-50">Cek ongkir resmi</button>
                 <button class="mt-3 w-full rounded-lg bg-[#1257d6] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Lanjutkan pembayaran</button>
                 <a href="{{ route('products.show', $product) }}" class="mt-3 block text-center text-xs font-medium text-slate-500 hover:text-[#1257d6]">Batalkan pesanan</a>
@@ -110,7 +111,7 @@
         const quoteUrl = @json(route('checkout.quote', $product));
         const shippingCost = document.getElementById('summary-shipping-cost');
         const total = document.getElementById('summary-total');
-        const productPrice = {{ (int) $product->price }};
+        const productPrice = {{ (int) $product->price * $quantity }};
         const serviceFee = {{ $serviceFee }};
         const paymentSection = document.getElementById('payment-method-section');
         const paymentMethods = document.querySelectorAll('input[name="payment_method"]');

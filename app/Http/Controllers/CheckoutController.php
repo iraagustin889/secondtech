@@ -21,16 +21,19 @@ class CheckoutController extends Controller
     public function create(Request $request, Product $product): View
     {
         abort_unless($product->isPurchasable(), 404);
+        abort_if($product->user_id === $request->user()->id, 403, 'Anda tidak dapat membeli produk milik sendiri.');
 
-        /** @var array{recipient_name?: string, recipient_phone?: string, recipient_address?: string, recipient_location?: string, destination_id?: int, destination_name?: string, quotes?: array<int, array<string, mixed>>} $savedCheckout */
+        /** @var array{recipient_name?: string, recipient_phone?: string, recipient_address?: string, recipient_location?: string, quantity?: int, destination_id?: int, destination_name?: string, quotes?: array<int, array<string, mixed>>} $savedCheckout */
         $savedCheckout = $request->session()->get($this->sessionKey($product), []);
         $user = $request->user();
+        $quantity = (int) old('quantity', $savedCheckout['quantity'] ?? 1);
         $activeServiceFee = ServiceFeeConfiguration::active();
-        $serviceFee = ServiceFeeConfiguration::calculate((int) $product->price);
+        $serviceFee = ServiceFeeConfiguration::calculate((int) $product->price * $quantity);
 
         return view('checkout.create', [
             'product' => $product,
             'checkout' => $savedCheckout,
+            'quantity' => $quantity,
             'recipient' => [
                 'recipient_name' => old('recipient_name', $savedCheckout['recipient_name'] ?? $user?->name),
                 'recipient_phone' => old('recipient_phone', $savedCheckout['recipient_phone'] ?? $user?->phone),
@@ -60,14 +63,20 @@ class CheckoutController extends Controller
     public function quote(QuoteShippingRequest $request, Product $product, ShippingQuoteService $shippingQuotes): RedirectResponse
     {
         abort_unless($product->isPurchasable(), 404);
+        abort_if($product->user_id === $request->user()->id, 403, 'Anda tidak dapat membeli produk milik sendiri.');
 
         $data = $request->validated();
+
+        if ((int) $data['quantity'] > $product->stock) {
+            return back()->withInput()->with('error', 'Jumlah pesanan melebihi stok yang tersedia.');
+        }
 
         try {
             $quotes = $shippingQuotes->quotes(
                 $product,
                 (int) $data['destination_id'],
                 $data['destination_name'],
+                (int) $data['quantity'],
             );
         } catch (ShippingQuoteUnavailableException $exception) {
             return back()->withInput()->with('error', $exception->getMessage());
@@ -93,8 +102,13 @@ class CheckoutController extends Controller
         $shippingQuote = [];
 
         if ($method === ShippingMethod::Expedition) {
-            /** @var array{quotes?: array<int, array<string, mixed>>} $savedCheckout */
+            /** @var array{quantity?: int, quotes?: array<int, array<string, mixed>>} $savedCheckout */
             $savedCheckout = $request->session()->get($this->sessionKey($product), []);
+
+            if ((int) ($savedCheckout['quantity'] ?? 0) !== (int) $data['quantity']) {
+                return back()->withInput()->with('error', 'Jumlah pesanan berubah. Silakan cek ongkir kembali.');
+            }
+
             $shippingQuote = collect($savedCheckout['quotes'] ?? [])
                 ->first(fn (array $quote): bool => hash_equals($quote['key'] ?? '', $data['quote_key'] ?? ''));
 

@@ -22,6 +22,7 @@ class QuoteShippingRequest extends FormRequest
             'recipient_phone' => ['required', 'string', 'max:30'],
             'recipient_address' => ['required', 'string', 'max:2000'],
             'recipient_location' => ['required', 'string', 'max:150'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:100'],
             'destination_id' => ['required', 'integer', 'min:1'],
             'destination_name' => ['required', 'string', 'max:255'],
         ];

@@ -99,7 +99,7 @@
         {{-- Info penjual --}}
         <div class="bg-white border rounded p-4 h-fit">
             <h2 class="font-semibold mb-2">Penjual</h2>
-            <p class="font-medium">{{ $product->seller->name }}</p>
+            <a href="{{ route('sellers.show', $product->seller) }}" class="font-medium text-blue-700 hover:underline">{{ $product->seller->name }}</a>
             @if ($product->seller->location)
                 <p class="text-sm text-gray-500">{{ $product->seller->location }}</p>
             @endif
@@ -107,6 +107,7 @@
                         @if ($sellerReviewCount > 0)
                 <p class="text-xs text-yellow-600 mt-1">★ {{ $sellerRating }} ({{ $sellerReviewCount }} ulasan penjual)</p>
             @endif
+            <a href="{{ route('sellers.show', $product->seller) }}" class="mt-3 inline-block text-sm text-blue-700 underline">Lihat profil penjual</a>
             @auth
                 @if (! $isOwner && ! auth()->user()->isAdmin() && $product->status === 'active')
                     <form method="POST" action="{{ route('chats.start.product', $product) }}" class="mt-4">

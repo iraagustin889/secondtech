@@ -76,6 +76,15 @@
                    class="w-full border rounded px-3 py-2 text-sm">
         </div>
 
+        <div class="border-t pt-4">
+            <p class="mb-3 font-medium text-gray-800">Profil penjual</p>
+            <label for="seller_bio" class="block text-sm text-gray-600 mb-1">Tentang toko / penjual</label>
+            <textarea id="seller_bio" name="seller_bio" rows="4" maxlength="1000"
+                      placeholder="Ceritakan jenis produk, kondisi barang, atau cara Anda melayani pembeli."
+                      class="w-full border rounded px-3 py-2 text-sm">{{ old('seller_bio', $user->seller_bio) }}</textarea>
+            <p class="mt-1 text-xs text-gray-500">Profil ini terlihat pada halaman penjual. Satu akun dapat membeli sekaligus menjual produk.</p>
+        </div>
+
         <div>
             <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded text-sm hover:bg-blue-700">
                 Simpan
