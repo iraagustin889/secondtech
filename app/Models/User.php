@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'name',
@@ -56,6 +57,11 @@ class User extends Authenticatable
     public function isSeller(): bool
     {
         return $this->role === 'seller';
+    }
+
+    public function avatarUrl(): ?string
+    {
+    return $this->avatar ? Storage::disk('public')->url($this->avatar) : null;
     }
 
     // Satu user (penjual) punya banyak produk

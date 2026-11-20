@@ -15,10 +15,34 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('profile.update') }}"
+    <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data"
           class="bg-white border rounded p-6 max-w-xl grid gap-4">
         @csrf
         @method('PUT')
+
+        <div>
+            <label class="block text-sm text-gray-600 mb-2">Foto profil</label>
+            <div class="flex items-center gap-4">
+                @if ($user->avatarUrl())
+                    <img src="{{ $user->avatarUrl() }}" alt="Foto profil"
+                         class="w-16 h-16 rounded-full object-cover border">
+                @else
+                    <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                @endif
+                <div>
+                    <input type="file" id="avatar" name="avatar" accept="image/png,image/jpeg,image/webp"
+                           class="text-sm">
+                    <p class="text-xs text-gray-500 mt-1">JPG, PNG, atau WEBP. Maksimal 2 MB.</p>
+                    @if ($user->avatar)
+                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 mt-2">
+                            <input type="checkbox" name="remove_avatar" value="1"> Hapus foto
+                        </label>
+                    @endif
+                </div>
+            </div>
+        </div>
 
         <div>
             <label for="name" class="block text-sm text-gray-600 mb-1">Nama</label>
