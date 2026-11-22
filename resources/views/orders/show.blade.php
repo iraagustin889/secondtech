@@ -162,6 +162,9 @@
             <h2 class="font-bold">Ulasan Anda</h2>
             <p class="mt-2 text-yellow-500">{{ str_repeat('★', $order->review->rating) }}{{ str_repeat('☆', 5 - $order->review->rating) }}</p>
             <p class="mt-1 text-sm text-gray-700">{{ $order->review->comment ?: '-' }}</p>
+            @if ($order->review->photo)
+           <img src="{{ asset('storage/'.$order->review->photo) }}" alt="Foto ulasan" class="mt-2 max-h-48 rounded border">
+           @endif
           </section>
     @else
         <section class="rounded-xl border bg-white p-5">
@@ -182,6 +185,11 @@
                     <label class="block text-sm">Komentar (opsional)</label>
                     <textarea name="comment" rows="3" class="mt-1 w-full rounded border px-3 py-2">{{ old('comment') }}</textarea>
                     @error('comment')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                   <label class="block text-sm">Foto (opsional, maks 2 MB)</label>
+                   <input type="file" name="photo" accept="image/*" class="mt-1 w-full rounded border px-3 py-2 text-sm">
+                   @error('photo')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Kirim ulasan</button>
             </form>

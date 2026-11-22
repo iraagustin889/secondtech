@@ -134,6 +134,9 @@
                 @if ($review->comment)
                     <p class="text-sm text-gray-700 mt-1">{{ $review->comment }}</p>
                 @endif
+                @if ($review->photo)
+                    <img src="{{ asset('storage/'.$review->photo) }}" alt="Foto ulasan" class="mt-2 max-h-40 rounded border">
+                @endif
             </div>
         @empty
             <p class="text-sm text-gray-500">Belum ada ulasan.</p>
