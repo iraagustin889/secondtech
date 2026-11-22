@@ -130,7 +130,7 @@ class OrderHistoryController extends Controller
 
         $this->recordCodConfirmation($request->user()->id, $order);
 
-        return to_route('orders.show', $order)->with('success', 'Konfirmasi COD telah dicatat.');
+        return to_route('orders.show', $order)->with('success', 'Konfirmasi serah-terima telah dicatat.');
     }
 
     public function tracking(Order $order, ShippingQuoteService $shippingQuotes): View|RedirectResponse
@@ -166,7 +166,7 @@ class OrderHistoryController extends Controller
             $shipping = Shipping::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
 
             if ($lockedOrder->status !== OrderStatus::CodAgreed) {
-                abort(422, 'Kesepakatan COD belum aktif atau sudah selesai.');
+                abort(422, 'Jadwal serah-terima belum aktif atau sudah selesai.');
             }
 
             $confirmation = $lockedOrder->buyer_id === $userId
@@ -177,9 +177,10 @@ class OrderHistoryController extends Controller
 
             if ($shipping->buyer_cod_confirmed_at && $shipping->seller_cod_confirmed_at) {
                 $shipping->update(['status' => ShippingStatus::CodCompleted]);
-                Payment::query()->where('order_id', $lockedOrder->id)->update([
+                $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
+                $payment->update([
                     'status' => PaymentStatus::Paid,
-                    'paid_at' => now(),
+                    'paid_at' => $payment->paid_at ?? now(),
                     'released_at' => now(),
                 ]);
                 $lockedOrder->update(['status' => OrderStatus::Completed]);

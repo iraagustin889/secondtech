@@ -48,7 +48,8 @@ class MidtransGateway
                             'country_code' => 'IDN',
                         ],
                     ],
-                    'enabled_payments' => $this->enabledPayments((string) $order->payment?->method),
+                    // QRIS Universal adalah satu-satunya metode digital di checkout.
+                    'enabled_payments' => ['qris'],
                     'callbacks' => [
                         'finish' => route('orders.show', $order),
                     ],
@@ -177,18 +178,6 @@ class MidtransGateway
         }
 
         return $items;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function enabledPayments(string $method): array
-    {
-        return match ($method) {
-            'qris' => ['qris'],
-            'e_wallet' => ['gopay', 'shopeepay'],
-            default => ['bca_va', 'bni_va', 'bri_va', 'permata_va'],
-        };
     }
 
     private function snapUrl(): string

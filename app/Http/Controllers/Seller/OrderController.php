@@ -73,7 +73,7 @@ class OrderController extends Controller
         ]);
         $order->update(['status' => OrderStatus::CodAgreed]);
 
-        return to_route('orders.show', $order)->with('success', 'Kesepakatan COD dicatat. Pembeli dan penjual dapat mengonfirmasi setelah serah-terima.');
+        return to_route('orders.show', $order)->with('success', 'Jadwal serah-terima dicatat. Pembeli dan penjual dapat mengonfirmasi setelah bertemu.');
     }
 
     public function confirmCod(ConfirmCodHandoverRequest $request, Order $order): RedirectResponse
@@ -85,7 +85,7 @@ class OrderController extends Controller
             $shipping = Shipping::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
 
             if ($lockedOrder->status !== OrderStatus::CodAgreed) {
-                abort(422, 'Kesepakatan COD belum aktif atau sudah selesai.');
+                abort(422, 'Jadwal serah-terima belum aktif atau sudah selesai.');
             }
 
             $shipping->update(['seller_cod_confirmed_at' => now()]);
@@ -93,9 +93,10 @@ class OrderController extends Controller
 
             if ($shipping->buyer_cod_confirmed_at && $shipping->seller_cod_confirmed_at) {
                 $shipping->update(['status' => ShippingStatus::CodCompleted]);
-                Payment::query()->where('order_id', $lockedOrder->id)->update([
+                $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
+                $payment->update([
                     'status' => PaymentStatus::Paid,
-                    'paid_at' => now(),
+                    'paid_at' => $payment->paid_at ?? now(),
                     'released_at' => now(),
                 ]);
                 $lockedOrder->update(['status' => OrderStatus::Completed]);
@@ -104,6 +105,6 @@ class OrderController extends Controller
             }
         });
 
-        return to_route('orders.show', $order)->with('success', 'Konfirmasi COD telah dicatat.');
+        return to_route('orders.show', $order)->with('success', 'Konfirmasi serah-terima telah dicatat.');
     }
 }

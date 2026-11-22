@@ -52,7 +52,8 @@ class OrderPolicy
     public function agreeCod(User $user, Order $order): bool
     {
         return $this->isSeller($user, $order)
-            && $order->status === OrderStatus::CodRequested;
+            && $order->shipping_method === ShippingMethod::Cod
+            && in_array($order->status, [OrderStatus::CodRequested, OrderStatus::Paid], true);
     }
 
     public function confirmCod(User $user, Order $order): bool

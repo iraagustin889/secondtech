@@ -17,12 +17,11 @@ use Illuminate\Support\Facades\DB;
 class CreateOrderAction
 {
     /**
-     * @param  array{recipient_name: string, recipient_phone: string, recipient_address: string, recipient_location: string, shipping_method: string, quantity: int, payment_method?: string}  $checkout
-     * @param  array{courier?: string, service?: string, cost?: int, estimate?: string, origin_id?: int, destination_id?: int, destination_name?: string}  $shippingQuote
+     * @param  array{recipient_name: string, recipient_phone: string, recipient_address: string, recipient_location: string, quantity: int, payment_method: 'cod'|'qris'}  $checkout
      */
-    public function handle(User $buyer, Product $product, array $checkout, array $shippingQuote = []): Order
+    public function handle(User $buyer, Product $product, array $checkout): Order
     {
-        return DB::transaction(function () use ($buyer, $product, $checkout, $shippingQuote): Order {
+        return DB::transaction(function () use ($buyer, $product, $checkout): Order {
             $lockedProduct = Product::query()
                 ->lockForUpdate()
                 ->findOrFail($product->id);
@@ -41,17 +40,18 @@ class CreateOrderAction
                 throw new OrderUnavailableException('Jumlah pesanan melebihi stok yang tersedia.');
             }
 
-            $shippingMethod = ShippingMethod::from($checkout['shipping_method']);
-            $shippingCost = $shippingMethod === ShippingMethod::Expedition
-                ? (int) ($shippingQuote['cost'] ?? 0)
-                : 0;
-
-            if ($shippingMethod === ShippingMethod::Expedition && $shippingCost < 1) {
-                throw new OrderUnavailableException('Pilihan ongkos kirim tidak lagi tersedia. Silakan cek ulang ongkir.');
-            }
+            // Semua transaksi baru adalah temu langsung. Nilai `cod` pada
+            // shipping dipertahankan agar pesanan lama tetap kompatibel.
+            $shippingMethod = ShippingMethod::Cod;
+            $paymentMethod = $checkout['payment_method'];
+            $isCod = $paymentMethod === 'cod';
+            $shippingCost = 0;
 
             $subtotal = (int) $lockedProduct->price * $quantity;
-            $serviceFee = ServiceFeeConfiguration::calculate((int) $subtotal);
+            // Uang COD berpindah langsung dari pembeli ke penjual, maka tidak
+            // ada biaya platform yang tidak dapat ditagih otomatis. Biaya
+            // layanan hanya diberlakukan pada QRIS/rekber.
+            $serviceFee = $isCod ? 0 : ServiceFeeConfiguration::calculate($subtotal);
 
             $order = Order::create([
                 'buyer_id' => $buyer->id,
@@ -59,7 +59,7 @@ class CreateOrderAction
                 'service_fee' => $serviceFee,
                 'shipping_cost' => $shippingCost,
                 'total' => $subtotal + $serviceFee + $shippingCost,
-                'status' => $shippingMethod === ShippingMethod::Cod
+                'status' => $isCod
                     ? OrderStatus::CodRequested
                     : OrderStatus::PendingPayment,
                 'shipping_method' => $shippingMethod,
@@ -80,25 +80,18 @@ class CreateOrderAction
             ]);
 
             $order->payment()->create([
-                'method' => $shippingMethod === ShippingMethod::Cod
-                    ? 'cod'
-                    : ($checkout['payment_method'] ?? 'bank_transfer'),
+                'method' => $paymentMethod,
                 'status' => PaymentStatus::Pending,
             ]);
 
             $order->shipping()->create([
                 'method' => $shippingMethod,
-                'status' => $shippingMethod === ShippingMethod::Cod
+                'status' => $isCod
                     ? ShippingStatus::CodRequested
                     : ShippingStatus::Selected,
-                'courier' => $shippingQuote['courier'] ?? null,
-                'service' => $shippingQuote['service'] ?? null,
-                'origin_id' => $shippingQuote['origin_id'] ?? $lockedProduct->shipping_origin_id,
-                'destination_id' => $shippingQuote['destination_id'] ?? null,
-                'destination_name' => $shippingQuote['destination_name'] ?? null,
+                'origin_id' => $lockedProduct->shipping_origin_id,
                 'weight' => $lockedProduct->weight * $quantity,
                 'cost' => $shippingCost,
-                'estimated_delivery' => $shippingQuote['estimate'] ?? null,
             ]);
 
             $newStock = $lockedProduct->stock - $quantity;

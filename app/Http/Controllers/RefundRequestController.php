@@ -31,8 +31,12 @@ class RefundRequestController extends Controller
         DB::transaction(function () use ($order, $request, $data): void {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
 
-            if (! in_array($lockedOrder->status, [OrderStatus::Shipped, OrderStatus::Received], true)) {
-                abort(422, 'Pengajuan pengembalian hanya tersedia setelah pesanan dikirim atau diterima.');
+            $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->first();
+
+            if (! in_array($lockedOrder->status, [OrderStatus::Paid, OrderStatus::CodAgreed, OrderStatus::Shipped, OrderStatus::Received], true)
+                || $payment?->method !== 'qris'
+                || $payment->status !== PaymentStatus::Paid) {
+                abort(422, 'Pengajuan pengembalian hanya tersedia untuk transaksi QRIS yang dananya masih ditahan rekber.');
             }
 
             if (RefundRequest::query()->where('order_id', $lockedOrder->id)->exists()) {

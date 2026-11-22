@@ -11,9 +11,18 @@
         <div>
             <a href="{{ route('chats.index') }}" class="text-sm text-blue-700 hover:underline">&larr; Semua pesan</a>
             <h1 class="mt-2 text-2xl font-bold">{{ $otherParticipant->name }}</h1>
-            <a href="{{ route('products.show', $conversation->product) }}" class="mt-1 text-sm text-gray-600 hover:underline">Tentang produk: {{ $conversation->product->name }}</a>
         </div>
     </div>
+
+    <a href="{{ route('products.show', $conversation->product) }}" class="mb-4 flex items-center gap-3 rounded-xl border bg-white p-3 transition hover:border-blue-400">
+        @if ($conversation->product->image)
+            <img src="{{ asset('storage/'.$conversation->product->image) }}" alt="{{ $conversation->product->name }}" class="h-14 w-14 rounded-lg object-cover">
+        @else
+            <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-blue-50 text-2xl">📦</div>
+        @endif
+        <div class="min-w-0 flex-1"><p class="truncate font-semibold text-slate-800">{{ $conversation->product->name }}</p><p class="mt-1 text-sm font-bold text-[#1257d6]">Rp {{ number_format($conversation->product->price, 0, ',', '.') }}</p><p class="mt-1 text-xs text-slate-500">Lihat detail produk</p></div>
+        <span class="text-sm font-semibold text-[#1257d6]">Lihat</span>
+    </a>
 
     <section class="rounded-xl border bg-white">
         <div class="max-h-[32rem] min-h-64 space-y-4 overflow-y-auto p-5">

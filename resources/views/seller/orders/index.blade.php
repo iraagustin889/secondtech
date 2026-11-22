@@ -3,7 +3,7 @@
 @section('title', 'Penjualan Saya')
 
 @section('content')
-    <div class="mb-6"><h1 class="text-2xl font-bold">Penjualan Saya</h1><p class="mt-1 text-gray-600">Daftar pembelian dari pelanggan. Buka pesanan untuk menyetujui COD atau memproses pesanan yang sudah dibayar.</p></div>
+    <div class="mb-6"><h1 class="text-2xl font-bold">Penjualan Saya</h1><p class="mt-1 text-gray-600">Daftar pembelian dari pelanggan. Atur jadwal serah-terima setelah COD dibuat atau QRIS berhasil dibayar.</p></div>
 
     <form method="GET" action="{{ route('seller.orders.index') }}" class="mb-6 flex flex-wrap items-end gap-2">
         <div>
@@ -29,7 +29,7 @@
                 <a href="{{ route('orders.show', $order) }}" class="block rounded-xl border bg-white p-5 transition hover:border-blue-400 hover:shadow-sm">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div><p class="font-bold">{{ $order->order_number ?? '#'.$order->id }}</p><p class="mt-1 text-sm text-gray-600">Pembeli: {{ $order->buyer->name }} · {{ $order->orderItems->first()?->product?->name }}</p></div>
-                        <div class="text-right"><p class="font-bold">{{ str_replace('_', ' ', $order->status->value) }}</p><p class="mt-1 text-sm text-gray-600">{{ $order->shipping_method?->value === 'cod' ? 'COD — perlu disetujui' : ($order->status->value === 'pending_payment' ? 'Menunggu pembayaran pembeli' : 'Ekspedisi') }}</p></div>
+                        <div class="text-right"><p class="font-bold">{{ str_replace('_', ' ', $order->status->value) }}</p><p class="mt-1 text-sm text-gray-600">{{ $order->status->value === 'cod_requested' ? 'COD — atur jadwal pertemuan' : ($order->status->value === 'pending_payment' ? 'Menunggu QRIS pembeli' : ($order->status->value === 'paid' && $order->shipping_method?->value === 'cod' ? 'QRIS dibayar — atur jadwal' : 'Serah-terima langsung')) }}</p></div>
                     </div>
                 </a>
             @endforeach

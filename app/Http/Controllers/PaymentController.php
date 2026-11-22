@@ -90,6 +90,10 @@ class PaymentController extends Controller
             return back()->with('error', 'Pembayaran ini tidak dapat dibuat ulang.');
         }
 
+        if ($payment->method !== 'qris') {
+            return back()->with('error', 'Hanya pembayaran QRIS Universal yang dapat diproses melalui gerbang pembayaran.');
+        }
+
         if (filled($payment->gateway_redirect_url)) {
             return redirect()->away($payment->gateway_redirect_url);
         }

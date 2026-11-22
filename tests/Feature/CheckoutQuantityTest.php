@@ -31,7 +31,7 @@ class CheckoutQuantityTest extends TestCase
             'recipient_address' => 'Jl. Contoh 1',
             'recipient_location' => 'Bandung',
             'quantity' => 3,
-            'shipping_method' => 'cod',
+            'payment_method' => 'cod',
         ])->assertRedirect();
 
         $order = Order::query()->firstOrFail();

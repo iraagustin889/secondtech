@@ -10,6 +10,15 @@
     @php
         $navActive = 'border-b-2 border-[#1257d6] pb-1 font-bold text-[#1257d6]';
         $navIdle = 'border-b-2 border-transparent pb-1 hover:text-[#1257d6]';
+        $unreadChatCount = auth()->check()
+            ? \App\Models\Message::query()
+                ->whereNull('read_at')
+                ->where('sender_id', '!=', auth()->id())
+                ->whereHas('conversation', fn ($query) => $query
+                    ->where('buyer_id', auth()->id())
+                    ->orWhere('seller_id', auth()->id()))
+                ->count()
+            : 0;
     @endphp
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div class="mx-auto flex h-20 max-w-7xl items-center gap-5 px-4 lg:px-6">
@@ -18,12 +27,19 @@
                 <span>SECONDTECH</span>
             </a>
 
-            <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 xl:flex">
+            <nav class="hidden items-center gap-5 text-sm font-medium text-slate-600 lg:flex">
                 @auth
                     @unless (auth()->user()->isAdmin())
+                        <a href="{{ route('catalog.index') }}" class="{{ request()->routeIs('catalog.index', 'products.*') ? $navActive : $navIdle }}">Beranda</a>
                         <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders.*') ? $navActive : $navIdle }}">Pesanan Saya</a>
                         <a href="{{ route('seller.products.index') }}" class="{{ request()->routeIs('seller.products.*') && ! request()->routeIs('seller.products.create') ? $navActive : $navIdle }}">Produk Saya</a>
                         <a href="{{ route('seller.orders.index') }}" class="{{ request()->routeIs('seller.orders.*') ? $navActive : $navIdle }}">Penjualan Saya</a>
+                        <a href="{{ route('chats.index') }}" class="{{ request()->routeIs('chats.*') ? $navActive : $navIdle }}">
+                            Pesan
+                            @if ($unreadChatCount)
+                                <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ $unreadChatCount }}</span>
+                            @endif
+                        </a>
                     @endunless
                 @endauth
             </nav>
@@ -57,7 +73,7 @@
                         @endif
                         <span class="hidden max-w-28 truncate font-medium text-slate-700 2xl:block">{{ auth()->user()->name }}</span>
                     </a>
-                    <form method="POST" action="{{ route('logout') }}" class="hidden xl:block">
+                    <form method="POST" action="{{ route('logout') }}" class="hidden 2xl:block">
                         @csrf
                         <button type="submit" class="rounded-xl px-3 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600">Keluar</button>
                     </form>
@@ -69,17 +85,37 @@
         </div>
     </header>
 
+    @auth
+        @unless (auth()->user()->isAdmin())
+            <nav class="overflow-x-auto border-b border-slate-200 bg-white lg:hidden" aria-label="Navigasi utama">
+                <div class="mx-auto flex min-w-max max-w-7xl gap-5 px-4 py-3 text-sm font-semibold text-slate-600">
+                    <a href="{{ route('catalog.index') }}" class="{{ request()->routeIs('catalog.index', 'products.*') ? 'text-[#1257d6]' : '' }}">Beranda</a>
+                    <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders.*') ? 'text-[#1257d6]' : '' }}">Pesanan Saya</a>
+                    <a href="{{ route('seller.products.index') }}" class="{{ request()->routeIs('seller.products.*') ? 'text-[#1257d6]' : '' }}">Produk Saya</a>
+                    <a href="{{ route('seller.orders.index') }}" class="{{ request()->routeIs('seller.orders.*') ? 'text-[#1257d6]' : '' }}">Penjualan Saya</a>
+                    <a href="{{ route('chats.index') }}" class="{{ request()->routeIs('chats.*') ? 'text-[#1257d6]' : '' }}">
+                        Pesan
+                        @if ($unreadChatCount) ({{ $unreadChatCount }}) @endif
+                    </a>
+                </div>
+            </nav>
+        @endunless
+    @endauth
+
     <div class="border-b border-blue-200 bg-[#1257d6] text-center text-sm font-medium text-white">
-        <div class="mx-auto max-w-7xl px-4 py-2.5">Perhatian: seluruh transaksi tercatat di sistem. Gunakan chat dan resi untuk keamanan pembelian.</div>
+        <div class="mx-auto max-w-7xl px-4 py-2.5">Perhatian: seluruh transaksi tercatat di sistem. Gunakan chat dan pilih lokasi pertemuan yang aman.</div>
     </div>
 
     @auth
         @unless (auth()->user()->isAdmin())
-            <a href="{{ route('chats.index') }}" class="fixed bottom-5 right-5 z-50 inline-flex items-center gap-3 rounded-full bg-[#1257d6] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/25 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label="Buka pesan">
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <a href="{{ route('chats.index') }}" class="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#1257d6] text-white shadow-lg shadow-blue-900/25 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label="Buka pesan">
+                <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.9 9.9 0 0 1-4.255-.949L3 20l1.207-3.622A7.33 7.33 0 0 1 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z" />
                 </svg>
-                <span>Chat</span>
+                @if ($unreadChatCount)
+                    <span class="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full border-2 border-white bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ $unreadChatCount }}</span>
+                @endif
+                <span class="sr-only">Pesan</span>
             </a>
         @endunless
     @endauth

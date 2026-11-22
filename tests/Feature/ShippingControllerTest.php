@@ -57,6 +57,31 @@ class ShippingControllerTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $product->id, 'status' => 'sold']);
     }
 
+    public function test_qris_escrow_order_is_released_only_after_direct_handover_is_confirmed(): void
+    {
+        [$buyer, $seller, $product, $order] = $this->makeOrder(OrderStatus::Paid, ShippingMethod::Cod, 'reserved');
+        $order->payment()->update([
+            'method' => 'qris',
+            'status' => PaymentStatus::Paid,
+            'paid_at' => now(),
+        ]);
+
+        $this->actingAs($seller)->post(route('seller.orders.cod.agree', $order), [
+            'cod_location' => 'Lobi kampus',
+            'cod_meeting_at' => now()->addDay()->format('Y-m-d\\TH:i'),
+        ])->assertRedirectToRoute('orders.show', $order);
+
+        $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => OrderStatus::CodAgreed->value]);
+        $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'method' => 'qris', 'status' => PaymentStatus::Paid->value, 'released_at' => null]);
+
+        $this->actingAs($buyer)->post(route('orders.cod.confirm', $order));
+        $this->actingAs($seller)->post(route('seller.orders.cod.confirm', $order));
+
+        $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => OrderStatus::Completed->value]);
+        $this->assertNotNull($order->payment()->firstOrFail()->fresh()->released_at);
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'status' => 'sold']);
+    }
+
     /**
      * @return array{0: User, 1: User, 2: Product, 3: Order}
      */

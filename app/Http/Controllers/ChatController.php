@@ -23,6 +23,9 @@ class ChatController extends Controller
                 ->where('buyer_id', $request->user()->id)
                 ->orWhere('seller_id', $request->user()->id))
             ->with(['buyer', 'seller', 'product', 'latestMessage.sender'])
+            ->withCount(['messages as unread_messages_count' => fn ($query) => $query
+                ->where('sender_id', '!=', $request->user()->id)
+                ->whereNull('read_at')])
             ->latest()
             ->paginate(15);
 

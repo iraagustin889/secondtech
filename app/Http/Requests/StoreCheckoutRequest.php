@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ShippingMethod;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,13 +29,9 @@ class StoreCheckoutRequest extends FormRequest
             'recipient_address' => ['required', 'string', 'max:2000'],
             'recipient_location' => ['required', 'string', 'max:150'],
             'quantity' => ['required', 'integer', 'min:1', 'max:100'],
-            'shipping_method' => ['required', Rule::enum(ShippingMethod::class)],
-            'payment_method' => [
-                Rule::requiredIf($this->input('shipping_method') === ShippingMethod::Expedition->value),
-                'nullable',
-                Rule::in(['bank_transfer', 'qris', 'e_wallet']),
-            ],
-            'quote_key' => ['nullable', 'string', 'size:64'],
+            // SecondTech mempertemukan pembeli dan penjual secara langsung.
+            // Lokasi serta waktu handover akan disepakati melalui pesanan dan chat.
+            'payment_method' => ['required', Rule::in(['cod', 'qris'])],
         ];
     }
 }

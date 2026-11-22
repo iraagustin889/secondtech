@@ -8,11 +8,19 @@
         $viewerIsSeller = $order->orderItems->contains(fn ($item) => $item->product?->user_id === auth()->id());
         $viewerIsAdmin = auth()->user()->isAdmin();
         $paymentMethodLabel = $order->payment?->methodLabel() ?? '-';
+        $orderStatusLabel = match ($order->status->value) {
+            'pending_payment' => 'Menunggu pembayaran QRIS',
+            'paid' => 'QRIS dibayar — tunggu jadwal pertemuan',
+            'cod_requested' => 'Menunggu jadwal COD',
+            'cod_agreed' => 'Jadwal serah-terima disepakati',
+            'completed' => 'Transaksi selesai',
+            default => str_replace('_', ' ', $order->status->value),
+        };
     @endphp
 
     <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div><p class="text-sm text-gray-500">Pesanan</p><h1 class="text-2xl font-bold">{{ $order->order_number ?? '#'.$order->id }}</h1><p class="mt-1 text-gray-600">Dibuat {{ $order->created_at->format('d M Y H:i') }}</p></div>
-        <span class="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800">{{ str_replace('_', ' ', $order->status->value) }}</span>
+        <span class="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800">{{ $orderStatusLabel }}</span>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-3">
@@ -25,17 +33,17 @@
             </div>
 
             <div class="rounded-xl border bg-white p-5">
-                <h2 class="font-bold">Pengiriman</h2>
+                <h2 class="font-bold">Serah-terima barang</h2>
                 <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                    <div><dt class="text-gray-500">Metode</dt><dd class="font-medium">{{ $order->shipping_method?->value === 'cod' ? 'COD' : 'Ekspedisi' }}</dd></div>
+                    <div><dt class="text-gray-500">Metode</dt><dd class="font-medium">{{ $order->shipping_method?->value === 'cod' ? 'Bertemu langsung' : 'Ekspedisi (pesanan lama)' }}</dd></div>
                     <div><dt class="text-gray-500">Status</dt><dd class="font-medium">{{ str_replace('_', ' ', $order->shipping?->status->value ?? '-') }}</dd></div>
                     @if ($order->shipping?->method->value === 'expedition')
                         <div><dt class="text-gray-500">Layanan</dt><dd class="font-medium">{{ strtoupper($order->shipping->courier ?? '-') }} {{ $order->shipping->service }}</dd></div>
                         <div><dt class="text-gray-500">Resi</dt><dd class="font-medium">{{ $order->shipping->resi ?? 'Belum diinput penjual' }}</dd></div>
                         @if ($order->shipping?->resi)<div class="sm:col-span-2"><a class="text-blue-700 underline" href="{{ route('orders.tracking', $order) }}">Lacak pengiriman</a></div>@endif
                     @else
-                        <div><dt class="text-gray-500">Lokasi COD</dt><dd class="font-medium">{{ $order->shipping?->cod_location ?? 'Menunggu persetujuan penjual' }}</dd></div>
-                        <div><dt class="text-gray-500">Waktu COD</dt><dd class="font-medium">{{ $order->shipping?->cod_meeting_at?->format('d M Y H:i') ?? '-' }}</dd></div>
+                        <div><dt class="text-gray-500">Lokasi serah-terima</dt><dd class="font-medium">{{ $order->shipping?->cod_location ?? 'Menunggu jadwal dari penjual' }}</dd></div>
+                        <div><dt class="text-gray-500">Waktu pertemuan</dt><dd class="font-medium">{{ $order->shipping?->cod_meeting_at?->format('d M Y H:i') ?? '-' }}</dd></div>
                     @endif
                 </dl>
                 @if ($viewerIsBuyer)
@@ -56,8 +64,8 @@
 
             <section class="rounded-xl border bg-white p-5">
                 <h2 class="font-bold">Rincian pembayaran</h2>
-                <dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between"><dt>Subtotal</dt><dd>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Ongkir</dt><dd>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Biaya layanan</dt><dd>Rp {{ number_format($order->service_fee, 0, ',', '.') }}</dd></div><div class="flex justify-between border-t pt-2 text-base font-bold"><dt>Total</dt><dd>Rp {{ number_format($order->total, 0, ',', '.') }}</dd></div></dl>
-                <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'Dibayar saat COD' : 'Metode: '.$paymentMethodLabel.' · Status: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
+                <dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between"><dt>Subtotal</dt><dd>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Biaya pengiriman</dt><dd>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</dd></div><div class="flex justify-between"><dt>Biaya layanan</dt><dd>Rp {{ number_format($order->service_fee, 0, ',', '.') }}</dd></div><div class="flex justify-between border-t pt-2 text-base font-bold"><dt>Total</dt><dd>Rp {{ number_format($order->total, 0, ',', '.') }}</dd></div></dl>
+                <p class="mt-4 text-sm text-gray-600">{{ $order->payment?->method === 'cod' ? 'COD — dibayar tunai langsung saat bertemu, tanpa biaya layanan.' : 'QRIS Universal · Status: '.str_replace('_', ' ', $order->payment?->status->value ?? '-') }}</p>
                 @if ($order->payment?->status?->value === 'paid' && ! $order->payment?->released_at)
                     <p class="mt-2 rounded bg-blue-50 p-2 text-sm text-blue-800">Dana ditahan aman oleh rekber lokal sampai pembeli mengonfirmasi pesanan selesai.</p>
                 @elseif ($order->payment?->released_at)
@@ -72,17 +80,17 @@
 
             @if ($viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod' && $midtransConfigured)
                 <section class="rounded-xl border border-blue-200 bg-white p-5">
-                    <h2 class="font-bold">Bayar aman dengan Midtrans</h2>
-                    <p class="mt-2 text-sm text-gray-600">Lanjutkan ke halaman Midtrans untuk {{ $paymentMethodLabel }}. Status pembayaran hanya berubah setelah webhook Midtrans tervalidasi.</p>
+                    <h2 class="font-bold">Bayar dengan QRIS Universal</h2>
+                    <p class="mt-2 text-sm text-gray-600">Lanjutkan ke QRIS. Status pembayaran hanya berubah setelah notifikasi pembayaran tervalidasi.</p>
                     <form method="POST" action="{{ route('orders.payment.gateway', $order) }}" class="mt-3">
                         @csrf
-                        <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">{{ $order->payment?->gateway_redirect_url ? 'Lanjutkan pembayaran' : 'Bayar dengan Midtrans' }}</button>
+                        <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">{{ $order->payment?->gateway_redirect_url ? 'Lanjutkan pembayaran QRIS' : 'Tampilkan QRIS' }}</button>
                     </form>
                 </section>
             @elseif (app()->environment(['local', 'testing']) && $viewerIsBuyer && $order->status->value === 'pending_payment' && $order->payment?->method !== 'cod')
                 <section class="rounded-xl border bg-white p-5">
-                    <h2 class="font-bold">SecondPay · Rekber lokal</h2>
-                    <p class="mt-2 text-sm text-gray-600">{{ $paymentMethodLabel }} diproses otomatis untuk presentasi. Dana akan ditahan sampai pesanan selesai atau pengembalian disetujui.</p>
+                    <h2 class="font-bold">QRIS Universal · Rekber</h2>
+                    <p class="mt-2 text-sm text-gray-600">Mode lokal untuk presentasi: pembayaran QRIS langsung dicatat dan dana ditahan sampai serah-terima selesai atau refund disetujui.</p>
                     <form method="POST" action="{{ route('orders.payment.simulate', $order) }}" class="mt-3">
                         @csrf
                         <button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Bayar Rp {{ number_format($order->total, 0, ',', '.') }}</button>
@@ -110,7 +118,7 @@
                 <section class="rounded-xl border border-slate-200 bg-white p-5 text-sm"><h2 class="font-bold">Pesanan dibatalkan</h2><p class="mt-2 text-slate-600">Alasan: {{ $order->cancellation_reason ?? '-' }}</p>@if($order->cancellation_note)<p class="mt-1 text-slate-600">Catatan: {{ $order->cancellation_note }}</p>@endif</section>
             @endif
 
-            @if ($viewerIsSeller && $order->status->value === 'paid')
+            @if ($viewerIsSeller && $order->status->value === 'paid' && $order->shipping_method?->value !== 'cod')
                 <form method="POST" action="{{ route('seller.orders.process', $order) }}">@csrf<button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Proses pesanan</button></form>
             @endif
 
@@ -118,15 +126,15 @@
                 <section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Masukkan nomor resi</h2><form method="POST" action="{{ route('seller.orders.ship', $order) }}" class="mt-3 space-y-3">@csrf<input name="resi" class="w-full rounded border px-3 py-2" placeholder="Nomor resi" required><button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Tandai dikirim</button></form></section>
             @endif
 
-            @if ($viewerIsSeller && $order->status->value === 'cod_requested')
-                <section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Setujui COD</h2><form method="POST" action="{{ route('seller.orders.cod.agree', $order) }}" class="mt-3 space-y-3">@csrf<textarea name="cod_location" class="w-full rounded border px-3 py-2" placeholder="Lokasi serah-terima" required></textarea><input type="datetime-local" name="cod_meeting_at" class="w-full rounded border px-3 py-2" required><button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Simpan kesepakatan</button></form></section>
+            @if ($viewerIsSeller && in_array($order->status->value, ['cod_requested', 'paid'], true) && $order->shipping_method?->value === 'cod')
+                <section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Atur jadwal serah-terima</h2><p class="mt-1 text-sm text-gray-600">Sepakati lokasi aman dan waktu pertemuan dengan pembeli lewat chat.</p><form method="POST" action="{{ route('seller.orders.cod.agree', $order) }}" class="mt-3 space-y-3">@csrf<textarea name="cod_location" class="w-full rounded border px-3 py-2" placeholder="Lokasi serah-terima" required></textarea><input type="datetime-local" name="cod_meeting_at" class="w-full rounded border px-3 py-2" required><button class="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white">Simpan jadwal</button></form></section>
             @endif
 
             @if ($order->status->value === 'cod_agreed' && $viewerIsBuyer)
-                <form method="POST" action="{{ route('orders.cod.confirm', $order) }}">@csrf<button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Saya sudah menerima & membayar COD</button></form>
+                <form method="POST" action="{{ route('orders.cod.confirm', $order) }}">@csrf<button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">{{ $order->payment?->method === 'cod' ? 'Saya sudah menerima & membayar tunai' : 'Saya sudah menerima barang' }}</button></form>
             @endif
             @if ($order->status->value === 'cod_agreed' && $viewerIsSeller)
-                <form method="POST" action="{{ route('seller.orders.cod.confirm', $order) }}">@csrf<button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Konfirmasi serah-terima COD</button></form>
+                <form method="POST" action="{{ route('seller.orders.cod.confirm', $order) }}">@csrf<button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Konfirmasi serah-terima barang</button></form>
             @endif
             @if ($viewerIsBuyer && in_array($order->status->value, ['shipped', 'received'], true))
                 <form method="POST" action="{{ route('orders.received', $order) }}">
@@ -134,10 +142,10 @@
                     <button class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white">Barang sudah saya terima</button>
                 </form>
             @endif
-            @if ($viewerIsBuyer && in_array($order->status->value, ['shipped', 'received'], true) && ! $order->refundRequest)
+            @if ($viewerIsBuyer && $order->payment?->method === 'qris' && $order->payment?->status?->value === 'paid' && in_array($order->status->value, ['paid', 'cod_agreed', 'shipped', 'received'], true) && ! $order->refundRequest)
                 <section class="rounded-xl border border-amber-200 bg-amber-50 p-5">
                     <h2 class="font-bold text-amber-900">Ajukan pengembalian</h2>
-                    <p class="mt-1 text-sm text-amber-800">Laporkan masalah sebelum mengonfirmasi barang diterima. Dana tetap ditahan selama admin memeriksa pengajuan.</p>
+                    <p class="mt-1 text-sm text-amber-800">Laporkan masalah sebelum atau sesudah serah-terima. Dana QRIS tetap ditahan selama admin memeriksa pengajuan.</p>
                     <form method="POST" action="{{ route('orders.refund-requests.store', $order) }}" class="mt-3 space-y-3">@csrf
                         <select name="reason" class="w-full rounded border border-amber-200 px-3 py-2 text-sm" required><option value="">Pilih alasan</option><option>Barang tidak sesuai</option><option>Barang rusak</option><option>Barang tidak sampai</option><option>Lainnya</option></select>
                         <textarea name="description" rows="3" class="w-full rounded border border-amber-200 px-3 py-2 text-sm" placeholder="Jelaskan masalah minimal 10 karakter" required></textarea>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceFeeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ChatController;
@@ -23,7 +24,6 @@ use App\Http\Controllers\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\SellerNotificationController;
 use App\Http\Controllers\SellerProfileController;
-use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Middleware\DenyAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -75,11 +75,6 @@ Route::middleware(['auth', DenyAdmin::class])->group(function () {
 
     Route::get('/products/{product}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/products/{product}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-
-    Route::middleware('throttle:30,1')->group(function () {
-        Route::get('/shipping/destinations', [CheckoutController::class, 'destinations'])->name('shipping.destinations');
-        Route::post('/products/{product}/shipping-quotes', [CheckoutController::class, 'quote'])->name('checkout.quote');
-    });
 
     Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderHistoryController::class, 'show'])->name('orders.show');
